@@ -31,6 +31,7 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 3. RAG: hata kodu birebir eşleşme + anlamsal arama, eşikler `max_distance=0.45`, `source_margin=0.08`.
 4. Bilgi bankası yönetimi (`/knowledge.html`): ekle/düzenle/gizle/geri al/ara/JSON dışa aktar/Arama testi.
 5. Sohbetten öğrenme ("bunu kaydet") + onay + yetki kontrolü.
+7. **İnternet araması (DuckDuckGo):** kayıt yoksa OTOMATİK arar (kullanıcı kararı: kişiye bağlı olmasın). Sonuçlar birebir "web" kartı, model çağrılmaz. Gizlilik: yalnızca temizlenmiş soru gider. Kapatma: `OFIS_WEB_SEARCH=false`. `app/services/websearch.py`.
 6. **Bas-konuş (Whisper):** F8 tuşu veya 🎙 düğmesi basılı tut → sunucuda faster-whisper (`small`, CPU) → yazı → otomatik gönder. Ses geçici dosyada çözülür ve silinir.
 
 ## 5. Henüz doğrulanmayanlar (kullanıcı denemeli)
@@ -40,7 +41,7 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 - Gerçek bilgi bankası şu an boş.
 
 ## 6. Yol haritası (onay bekliyor, sırayla)
-1. **İnternet araması (DuckDuckGo):** yalnızca kullanıcı isteyince, `ddgs` paketi ile.
+1. ~~İnternet araması~~ (yapıldı, bkz. Yapılanlar 7).
 2. Sunucuda otomatik başlatma (Windows servisi/Görev Zamanlayıcı; Docker kararı ertelendi), yedekleme/geri yükleme (JSON içe aktarma henüz yok).
 3. Gerçek verilerle eşik ve hotword ayarı. Güçlü sunucuya geçince daha büyük model (`OFIS_LLM_MODEL=qwen2.5:7b`) ve gerekirse `OFIS_NOTE_MODE=llm`.
 
@@ -55,5 +56,5 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 - `av` paketi `>=14,<17` olmalı; av 19, faster-whisper ile uyumsuz.
 - 3B model: notta adımları tekrarlıyor, kod uyduruyor → varsayılan `note_mode=template`. "Bulamazsam söyle" talimatı iyi kayıt varken bile reddettiriyor → karar kodda.
 - Python/Bash heredoc içinde ters eğik çizgi bozuluyor; düzenlemeleri dosya düzenleme aracıyla yap.
-- Testler: `.venv\Scripts\python.exe -m unittest discover tests` (gerçek model/ağ gerektirmez; `tests/__init__.py` Whisper ön yüklemeyi kapatır).
+- Testler: `.venv\Scripts\python.exe -m unittest discover -s tests -t .` (gerçek model/ağ gerektirmez; `tests/__init__.py` Whisper ön yüklemeyi kapatır).
 - Kod haritası için README "Klasörler" bölümüne bakın; ayarların hepsi `app/core/config.py` içinde.

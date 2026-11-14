@@ -8,12 +8,15 @@ const Chat = (() => {
   function scrollDown() { const m = $("messages"); m.scrollTop = m.scrollHeight; }
 
   // Bilgi bankası kaydı: başlık + çözüm, birebir. kind: "draft" (onay bekliyor) | "saved" | (yok)
-  const LABELS = { draft: "Kaydedilecek kayıt (onayınız bekleniyor)", saved: "Bilgi bankasına eklendi" };
+  const LABELS = { draft: "Kaydedilecek kayıt (onayınız bekleniyor)", saved: "Bilgi bankasına eklendi",
+                   web: "İnternet sonucu (şirket kaydı değil)" };
   function card(c, withActions) {
     const node = el("div", { class: "kb-card" + (c.kind ? " " + c.kind : "") },
       el("div", { class: "kb-label" }, LABELS[c.kind] || "Bilgi bankası kaydı"),
       el("div", { class: "kb-title" }, c.title),
       el("div", { class: "kb-solution" }, c.solution));
+    if (c.kind === "web" && /^https?:\/\//.test(c.url || ""))
+      node.append(el("a", { class: "kb-link", href: c.url, target: "_blank", rel: "noopener noreferrer" }, c.url));
     if (c.kind === "draft" && withActions) {
       const bar = el("div", { class: "kb-actions" });
       const done = () => bar.remove();

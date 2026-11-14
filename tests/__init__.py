@@ -2,3 +2,4 @@
 import os
 
 os.environ["OFIS_STT_PRELOAD"] = "false"
+os.environ["OFIS_WEB_SEARCH"] = "false"   # testler gerçek internete çıkmasın (web testleri kendisi açar)

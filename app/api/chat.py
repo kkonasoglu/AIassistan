@@ -5,7 +5,8 @@ Akış (bilgi bankası açıkken):
      BİREBİR ve HEMEN gönderilir; kullanıcı modeli beklemez.
   2. Ardından model, kartların üstüne günlük dille kısa bir not yazar (`token` olayları).
   3. Kayıt yoksa: selamlaşma/teşekkür hazır cevapla, devam sorusu geçmişten, diğerleri
-     "kayıt bulamadım" ile yanıtlanır. Model kendi bilgisinden uydurmaz.
+     otomatik internet araması (websearch) ile; sonuç/internet yoksa "kayıt bulamadım".
+     Model kendi bilgisinden uydurmaz; web sonuçları özetlenmeden birebir gösterilir.
 
 Olay türleri (her biri `data: {json}` satırı):
   queue  {position}  -> not için sırada bekleniyor
@@ -26,7 +27,7 @@ from pydantic import BaseModel
 from app.api.deps import current_user
 from app.core.config import settings
 from app.services import (chat_store, intent, knowledge, learning, llm, llm_queue, memory,
-                          notes, rag)
+                          notes, rag, websearch)
 from app.services.users import User
 
 router = APIRouter(prefix="/chat")
@@ -154,6 +155,21 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
             yield _sse({"type": "cards", "cards": state["cards"]})
             yield say(f'Kaydedildi: "{title}". Artık sohbette aranabilir.')
 
+        async def web_fallback(fallback: str):
+            """Bilgi bankasında cevap yok: otomatik internet araması (sonuçlar birebir kart)."""
+            if not settings.web_search:
+                yield say(fallback)
+                return
+            yield _sse({"type": "status", "text": "Bilgi bankasında yok, internette aranıyor…"})
+            results = await run(websearch.search, text)
+            if not results:
+                yield say(fallback)
+                return
+            state["cards"] = [{"title": r["title"], "solution": r["snippet"], "url": r["url"],
+                               "kind": "web"} for r in results]
+            yield _sse({"type": "cards", "cards": state["cards"]})
+            yield say(settings.web_note)
+
         async def learn(content: str):
             """Yalnızca admin: anlatılan bilgiyi düzenler, önizleme gösterir (veya doğrudan kaydeder)."""
             if not user.is_admin:   # yetki, rol veritabanından taze okunarak kontrol edilir
@@ -242,7 +258,8 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
                     yield say(intent.smalltalk(text))
                 elif await loop.run_in_executor(None, rag.count) == 0:
                     # Kayıt bulunamamasının sebebi eşleşmeme değil, bankanın boş olması
-                    yield say(settings.empty_kb_message)
+                    async for ev in web_fallback(settings.empty_kb_message):
+                        yield ev
                 elif any(m["role"] == "assistant" for m in history[:-1]) \
                         and memory.looks_like_followup(text):
                     # Devam sorusu ("3. adımı tekrar yaz"): önceki cevap zaten geçmişte
@@ -255,7 +272,8 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
                         async for ev in generate(follow, settings.followup_prompt):
                             yield ev
                 else:
-                    yield say(settings.no_kb_message)
+                    async for ev in web_fallback(settings.no_kb_message):
+                        yield ev
 
             mid = chat_store.add_message(user.id, conv_id, "assistant", state["reply"],
                                          [c["title"] for c in state["cards"]], state["cards"])

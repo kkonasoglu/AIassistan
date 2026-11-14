@@ -31,7 +31,12 @@ Python + FastAPI + sade HTML/JS arayüz. Dışarıya veri göndermez.
   hiçbir yere gönderilmez. Mikrofon için sayfa `https://` ile açılmalı. Model (`small`, ~460 MB) ilk kullanımda
   indirilir (internet gerekir) ve `data/models` altına kaydedilir. Ayarlar: `OFIS_STT_MODEL` (base: daha hızlı,
   medium: daha doğru), `OFIS_STT_HOTWORDS` (alan terimleri). Sesle de "bunu kaydet" denebilir; yetki ve onay akışı aynıdır.
-- Alakalı kayıt yoksa model kendi bilgisinden cevap **uydurmaz**: "kayıt bulamadım" der.
+- **İnternet araması (otomatik):** Bilgi bankasında alakalı kayıt yoksa sistem DuckDuckGo'da arar ve sonuçları
+  (başlık, özet, bağlantı) **birebir, "İnternet sonucu" etiketli kartlar** olarak gösterir; model özetlemez, uydurmaz.
+  Dışarı yalnızca o anki soru cümlesi gider (e-posta ve uzun sayılar silinir); bilgi bankası, sohbet geçmişi ve
+  kullanıcı adı gitmez. Selamlaşma ve "3. adımı yaz" gibi devam soruları aramaya gitmez. İnternet yoksa normal
+  "kayıt bulamadım" mesajı çıkar. Tamamen offline için: `OFIS_WEB_SEARCH=false`.
+- Alakalı kayıt yoksa ve arama kapalı/sonuçsuzsa model kendi bilgisinden cevap **uydurmaz**: "kayıt bulamadım" der.
   Selamlaşma/teşekkür ve "3. adımı tekrar yaz" gibi devam soruları kodla anında cevaplanır.
 - Hesaplar SQLite'ta (argon2), roller `admin`/`user`, en az 1 aktif admin kuralı. Sohbetler kullanıcıya özeldir.
 
@@ -40,7 +45,7 @@ Python + FastAPI + sade HTML/JS arayüz. Dışarıya veri göndermez.
 ## Klasörler
 - `app/api/` HTTP uç noktaları, `app/services/` iş mantığı, `app/db/` SQLite, `app/static/` arayüz
 - `data/` tüm çalışma verisi (veritabanı, vektör deposu, sertifika): taşırken bu klasör de gider
-- `tests/` otomatik testler: `.venv\Scripts\python.exe -m unittest discover tests`
+- `tests/` otomatik testler: `.venv\Scripts\python.exe -m unittest discover -s tests -t .` (`-t .` şart)
 - `scripts/` yardımcı betikler (`seed_example`: örnek kayıtları yükler, `make_cert`)
 
 ## Ayarlar

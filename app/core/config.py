@@ -108,6 +108,17 @@ class Settings(BaseSettings):
         "deneyebilir ya da bu bilginin eklenmesini bir yöneticiden isteyebilirsiniz."
     )
 
+    # --- İnternet araması (DuckDuckGo): bilgi bankasında cevap yoksa otomatik ---
+    # Dışarı yalnızca temizlenmiş soru cümlesi gider. Tamamen offline kalmak için: OFIS_WEB_SEARCH=false
+    web_search: bool = True
+    web_results: int = 3
+    web_timeout: int = 8
+    web_region: str = "tr-tr"
+    web_note: str = (
+        "Bilgi bankasında kayıt bulamadım, internette şunları buldum. Bunlar şirket "
+        "kaydı değil, genel kaynaklardır: uygulamadan önce kontrol edin."
+    )
+
     # --- Sohbet hafızası (kısa süreli) ---
     history_turns: int = 6          # modele verilecek son soru-cevap çifti sayısı
     max_history_chars: int = 6000   # geçmiş bundan uzunsa en eskiler atılır

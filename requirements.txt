@@ -21,8 +21,8 @@ faster-whisper
 # faster-whisper, av 17+ ile uyumsuz (av.open metadata_errors hatası): sabitlendi
 av>=14,<17
 
-# Sonraki adımlarda eklenecek (şimdilik kapalı):
-# ddgs                # DuckDuckGo araması
+# İnternet araması (DuckDuckGo): bilgi bankasında cevap yoksa
+ddgs
 
 # Testler icin
 httpx
