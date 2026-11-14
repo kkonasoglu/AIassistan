@@ -1,0 +1,28 @@
+# Web sunucusu
+fastapi
+uvicorn[standard]
+python-multipart
+
+# LLM (Ollama istemcisi) ve ayarlar
+ollama
+pydantic-settings
+
+# Hesaplar
+argon2-cffi
+
+# Bilgi bankası (vektör veritabanı)
+chromadb
+
+# HTTPS sertifikası üretmek için
+cryptography
+
+# Konuşma tanıma (bas-konuş). Sunucuda çalışır, ses dışarı gitmez.
+faster-whisper
+# faster-whisper, av 17+ ile uyumsuz (av.open metadata_errors hatası): sabitlendi
+av>=14,<17
+
+# Sonraki adımlarda eklenecek (şimdilik kapalı):
+# ddgs                # DuckDuckGo araması
+
+# Testler icin
+httpx

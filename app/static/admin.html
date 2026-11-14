@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Paneli - Ofis Asistanı</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>Admin Paneli</h1>
+    <span id="who" class="muted"></span>
+    <a href="/"><button>← Sohbet</button></a>
+    <a href="/knowledge.html"><button>Bilgi bankası</button></a>
+    <button id="logout-btn">Çıkış</button>
+  </header>
+  <main>
+    <div class="card">
+      <h2>Kullanıcılar</h2>
+      <div id="list-msg" class="msg"></div>
+      <table>
+        <thead><tr><th>Kullanıcı</th><th>Rol</th><th>Durum</th><th>İşlemler</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Yeni kullanıcı ekle</h2>
+      <form id="add-form" class="grid">
+        <div><label>Kullanıcı adı</label><input id="n-user" required autocomplete="off"></div>
+        <div><label>Şifre (en az 6)</label><input id="n-pw" type="password" required autocomplete="new-password"></div>
+        <div><label>Rol</label>
+          <select id="n-role"><option value="user">user</option><option value="admin">admin</option></select></div>
+        <button class="primary" type="submit">Ekle</button>
+      </form>
+      <div id="add-msg" class="msg"></div>
+    </div>
+  </main>
+
+  <script src="/app.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    let me = null;
+
+    async function run(action, okText) {
+      try { await action(); say($("list-msg"), okText || "", "ok"); }
+      catch (e) { say($("list-msg"), e.message); }
+      await load();
+    }
+
+    async function load() {
+      let list;
+      try { list = await api("/api/admin/users"); }
+      catch (e) { if (e.status === 401 || e.status === 403) return (location.href = "/"); return say($("list-msg"), e.message); }
+      // Rolüm değiştiyse (örn. yetki devrettiysem) admin değilim artık
+      const fresh = await api("/api/auth/me");
+      if (fresh.role !== "admin") return (location.href = "/");
+      me = fresh;
+      $("who").textContent = me.username;
+
+      const body = $("rows"); body.replaceChildren();
+      for (const u of list) {
+        const self = u.id === me.id;
+        const acts = el("td", { class: "actions" });
+        acts.append(
+          el("button", { onclick: () => run(() => api(`/api/admin/users/${u.id}/role`, "PATCH",
+            { role: u.role === "admin" ? "user" : "admin" })) }, u.role === "admin" ? "Yetkiyi al" : "Admin yap"),
+          el("button", { onclick: () => {
+            const pw = prompt(`"${u.username}" için yeni şifre (en az 6 karakter):`);
+            if (pw) run(() => api(`/api/admin/users/${u.id}/password`, "POST", { password: pw }), "Şifre güncellendi.");
+          } }, "Şifre sıfırla"),
+          el("button", { class: u.is_active ? "danger" : "", onclick: () => {
+            if (u.is_active && !confirm(`"${u.username}" hesabı pasife alınsın mı? Giriş yapamaz.`)) return;
+            run(() => api(`/api/admin/users/${u.id}/active`, "PATCH", { active: !u.is_active }));
+          } }, u.is_active ? "Pasife al" : "Aktif et"));
+        if (!self && u.is_active) acts.append(
+          el("button", { onclick: () => {
+            if (confirm(`Admin rolünüz "${u.username}" kullanıcısına devredilsin mi? Siz standart kullanıcı olacaksınız.`))
+              run(() => api("/api/admin/transfer", "POST", { target_id: u.id }));
+          } }, "Yetkiyi devret"));
+        body.append(el("tr", {},
+          el("td", {}, u.username + (self ? " (siz)" : "")),
+          el("td", {}, el("span", { class: "badge " + (u.role === "admin" ? "admin" : "") }, u.role)),
+          el("td", {}, u.is_active ? "Aktif" : el("span", { class: "badge off" }, "Pasif")),
+          acts));
+      }
+    }
+
+    $("add-form").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      try {
+        await api("/api/admin/users", "POST",
+          { username: $("n-user").value, password: $("n-pw").value, role: $("n-role").value });
+        say($("add-msg"), "Kullanıcı eklendi.", "ok");
+        ev.target.reset(); await load();
+      } catch (e) { say($("add-msg"), e.message); }
+    });
+    $("logout-btn").addEventListener("click", logout);
+    load();
+  </script>
+</body>
+</html>

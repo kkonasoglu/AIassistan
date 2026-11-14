@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bilgi Bankası - Ofis Asistanı</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    textarea.big { width: 100%; min-height: 220px; padding: 10px; border: 1px solid var(--line);
+                   border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; resize: vertical; }
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .toolbar input[type=search] { flex: 1; min-width: 180px; }
+    .rec { padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .rec .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+    .rec .title { font-weight: 600; flex: 1; min-width: 200px; }
+    .rec .meta { font-size: 12px; color: var(--muted); }
+    .rec .snippet { color: var(--muted); font-size: 13px; margin: 2px 0 6px; white-space: pre-wrap; }
+    .rec.deleted .title { text-decoration: line-through; color: var(--muted); }
+    .rec .actions { display: flex; gap: 6px; }
+    .rec .actions button { padding: 3px 9px; font-size: 13px; }
+    table.test td.num { font-variant-numeric: tabular-nums; }
+    .hint { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bilgi Bankası</h1>
+    <span id="who" class="muted"></span>
+    <a href="/"><button>← Sohbet</button></a>
+    <a href="/admin.html"><button>Kullanıcılar</button></a>
+    <button id="logout-btn">Çıkış</button>
+  </header>
+  <main>
+    <div class="card">
+      <h2 id="form-title">Yeni kayıt ekle</h2>
+      <form id="kb-form">
+        <label>Başlık (hata kodu ve kısa açıklama, örn. "KNK-204: Kullanıcı adı veya şifre hatalı")</label>
+        <input id="f-title" maxlength="200" required autocomplete="off">
+        <label>Çözüm (belirti ve adım adım çözüm)</label>
+        <textarea id="f-solution" class="big" maxlength="8000" required
+          placeholder="Belirti: Entegratör girişinde &quot;Kimlik doğrulama başarısız&quot; mesajı alınır.&#10;Çözüm adımları:&#10;1. Ayarlar > Entegratör Bilgileri ekranına girin.&#10;2. Kullanıcı adı ve şifreyi kontrol edin.&#10;3. ..."></textarea>
+        <p class="hint">Adımları "1." "2." diye numaralayın; böylece kullanıcılar "3. adımı tekrar yaz" diyebilir.
+          Başlıkta hata kodunu mutlaka yazın, kod ile arama birebir ve çok hızlı çalışır.</p>
+        <div id="f-msg" class="msg"></div>
+        <div class="form-actions">
+          <button class="primary" type="submit" id="f-save">Kaydet</button>
+          <button type="button" id="f-cancel" class="hidden">Vazgeç</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 id="list-title">Kayıtlar</h2>
+      <div class="toolbar">
+        <input type="search" id="q" placeholder="Kayıtlarda ara (başlık veya çözüm)…">
+        <label class="check" style="margin:0"><input type="checkbox" id="show-deleted"> Silinenleri göster</label>
+        <a id="export" href="/api/admin/knowledge/export"><button type="button">JSON dışa aktar</button></a>
+      </div>
+      <div id="list-msg" class="msg"></div>
+      <div id="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Arama testi</h2>
+      <p class="muted" style="margin-top:0">Bir kullanıcının yazabileceği cümleyi girin: hangi kayıtlar hangi mesafeyle bulunur,
+        hangisi kullanıcıya gösterilirdi? (Mesafe ne kadar küçükse o kadar yakın.)</p>
+      <div class="toolbar">
+        <input id="t-q" placeholder="örn. programa giremiyorum şifre hatalı diyor" autocomplete="off">
+        <button id="t-go" class="primary">Test et</button>
+      </div>
+      <div id="t-msg" class="msg"></div>
+      <div id="t-out"></div>
+    </div>
+  </main>
+
+  <script src="/app.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    let records = [];
+    let editingId = null;
+
+    function resetForm() {
+      editingId = null;
+      $("kb-form").reset();
+      $("form-title").textContent = "Yeni kayıt ekle";
+      $("f-cancel").classList.add("hidden");
+      say($("f-msg"), "");
+    }
+
+    function fmt(iso) { return iso ? iso.replace("T", " ").replace("+00:00", " UTC") : ""; }
+
+    function render() {
+      const term = $("q").value.trim().toLocaleLowerCase("tr");
+      const shown = records.filter(r => !term || (r.title + " " + r.solution).toLocaleLowerCase("tr").includes(term));
+      $("list-title").textContent = `Kayıtlar (${records.filter(r => !r.deleted).length} aktif)`;
+      const box = $("list"); box.replaceChildren();
+      if (!shown.length) box.append(el("p", { class: "muted" },
+        records.length ? "Aramanıza uyan kayıt yok." : "Henüz kayıt yok. Yukarıdaki formdan ilk kaydı ekleyin."));
+      for (const r of shown) {
+        const actions = el("div", { class: "actions" });
+        if (r.deleted) actions.append(el("button", { onclick: () => act(() => api(`/api/admin/knowledge/${r.id}/restore`, "POST"), "Kayıt geri alındı.") }, "Geri al"));
+        else actions.append(
+          el("button", { onclick: () => edit(r) }, "Düzenle"),
+          el("button", { class: "danger", onclick: () => {
+            if (confirm(`"${r.title}" kaydı silinsin mi? (Gizlenir, "Silinenleri göster" ile geri alınabilir.)`))
+              act(() => api(`/api/admin/knowledge/${r.id}`, "DELETE"), "Kayıt silindi.");
+          } }, "Sil"));
+        box.append(el("div", { class: "rec" + (r.deleted ? " deleted" : "") },
+          el("div", { class: "head" }, el("span", { class: "title" }, r.title), actions),
+          el("div", { class: "snippet" }, r.solution.length > 160 ? r.solution.slice(0, 160) + "…" : r.solution),
+          el("div", { class: "meta" }, `Ekleyen: ${r.author} • Son değişiklik: ${r.updated_by}, ${fmt(r.updated_at)}` + (r.deleted ? " • SİLİNDİ" : ""))));
+      }
+    }
+
+    async function load() {
+      try {
+        const me = await api("/api/auth/me");
+        if (me.role !== "admin") return (location.href = "/");
+        $("who").textContent = me.username;
+        records = await api("/api/admin/knowledge?deleted=" + ($("show-deleted").checked ? "true" : "false"));
+        render();
+      } catch (e) {
+        if (e.status === 401 || e.status === 403) return (location.href = "/");
+        say($("list-msg"), e.message);
+      }
+    }
+
+    async function act(fn, okText) {
+      try { await fn(); say($("list-msg"), okText, "ok"); } catch (e) { say($("list-msg"), e.message); }
+      await load();
+    }
+
+    function edit(r) {
+      editingId = r.id;
+      $("f-title").value = r.title; $("f-solution").value = r.solution;
+      $("form-title").textContent = "Kaydı düzenle";
+      $("f-cancel").classList.remove("hidden");
+      say($("f-msg"), "");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      $("f-title").focus();
+    }
+
+    $("kb-form").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      const body = { title: $("f-title").value, solution: $("f-solution").value };
+      $("f-save").disabled = true;
+      say($("f-msg"), "Kaydediliyor (arama için hazırlanıyor)…", "ok");
+      try {
+        if (editingId) await api(`/api/admin/knowledge/${editingId}`, "PUT", body);
+        else await api("/api/admin/knowledge", "POST", body);
+        const wasEdit = !!editingId;
+        resetForm();
+        say($("f-msg"), wasEdit ? "Kayıt güncellendi." : "Kayıt eklendi. Artık sohbette aranabilir.", "ok");
+        await load();
+      } catch (e) { say($("f-msg"), e.message); }
+      finally { $("f-save").disabled = false; }
+    });
+    $("f-cancel").addEventListener("click", resetForm);
+    $("q").addEventListener("input", render);
+    $("show-deleted").addEventListener("change", load);
+    $("logout-btn").addEventListener("click", logout);
+
+    async function runTest() {
+      const q = $("t-q").value.trim();
+      if (!q) return;
+      const out = $("t-out"); out.replaceChildren();
+      say($("t-msg"), "Aranıyor…", "ok");
+      try {
+        const d = await api("/api/admin/knowledge/test", "POST", { question: q });
+        if (d.mode === "empty") return say($("t-msg"), "Bilgi bankası boş.");
+        say($("t-msg"), d.mode === "code"
+          ? "Soruda hata kodu var: kayıt koda göre BİREBİR bulundu (anlamsal arama yapılmadı)."
+          : `Anlamsal arama. Eşik: ${d.max_distance} (daha uzaklar kullanılmaz). En iyi eşleşmeden ${d.source_margin} fazla uzak olanlar elenir.`, "ok");
+        const tb = el("tbody");
+        for (const r of d.rows) tb.append(el("tr", {},
+          el("td", {}, r.used ? "✔ kullanılır" : "— kullanılmaz"),
+          el("td", { class: "num" }, r.distance.toFixed(3)),
+          el("td", {}, r.title)));
+        out.append(el("table", { class: "test" },
+          el("thead", {}, el("tr", {}, el("th", {}, "Durum"), el("th", {}, "Mesafe"), el("th", {}, "Kayıt"))), tb));
+        if (!d.rows.some(r => r.used)) out.append(el("p", { class: "msg error" },
+          "Hiçbir kayıt kullanılmaz: kullanıcı \"kayıt bulamadım\" cevabı alır. Başlığa/çözüme günlük dilde kullanılan kelimeleri ekleyin."));
+      } catch (e) { say($("t-msg"), e.message); }
+    }
+    $("t-go").addEventListener("click", runTest);
+    $("t-q").addEventListener("keydown", ev => { if (ev.key === "Enter") runTest(); });
+
+    load();
+  </script>
+</body>
+</html>

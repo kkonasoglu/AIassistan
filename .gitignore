@@ -1,0 +1,10 @@
+﻿.venv/
+__pycache__/
+*.pyc
+.env
+# Çalışma verisi (veritabanı, vektör deposu, sertifika, modeller) sürüm kontrolüne girmez
+data/app.db*
+data/vectorstore/
+data/certs/
+data/models/*
+!data/models/.gitkeep

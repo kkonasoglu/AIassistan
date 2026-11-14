@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ofis Asistanı</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!-- İlk kurulum -->
+  <div id="setup" class="card narrow hidden">
+    <h2>İlk kurulum</h2>
+    <p class="muted">Yönetici (admin) hesabını oluşturun. Bu şifreyi unutmayın; sıfırlayabilecek başka bir admin olmayabilir.</p>
+    <form id="setup-form">
+      <label>Kullanıcı adı</label><input id="s-user" autocomplete="username" required>
+      <label>Şifre (en az 6 karakter)</label><input id="s-pw" type="password" autocomplete="new-password" required>
+      <label>Şifre (tekrar)</label><input id="s-pw2" type="password" autocomplete="new-password" required>
+      <div id="s-msg" class="msg"></div>
+      <div class="form-actions"><button class="primary" type="submit">Hesabı oluştur</button></div>
+    </form>
+  </div>
+
+  <!-- Giriş -->
+  <div id="login" class="card narrow hidden">
+    <h2>Ofis Asistanı</h2>
+    <form id="login-form">
+      <label>Kullanıcı adı</label><input id="l-user" autocomplete="username" required autofocus>
+      <label>Şifre</label><input id="l-pw" type="password" autocomplete="current-password" required>
+      <div id="l-msg" class="msg"></div>
+      <div class="form-actions"><button class="primary" type="submit">Giriş</button></div>
+    </form>
+  </div>
+
+  <!-- Ana ekran: sohbet -->
+  <div id="home" class="hidden app-shell">
+    <header>
+      <h1>Ofis Asistanı</h1>
+      <span id="who" class="muted"></span>
+      <a id="kb-link" href="/knowledge.html" class="hidden"><button>Bilgi bankası</button></a>
+      <a id="admin-link" href="/admin.html" class="hidden"><button>Kullanıcılar</button></a>
+      <button id="pw-btn">Şifre değiştir</button>
+      <button id="logout-btn">Çıkış</button>
+    </header>
+    <div class="chat-layout">
+      <aside class="sidebar">
+        <button id="new-chat" class="primary">+ Yeni sohbet</button>
+        <div id="conv-list"></div>
+        <details class="status-box">
+          <summary class="muted">Sistem durumu</summary>
+          <div id="status"></div>
+        </details>
+      </aside>
+      <section class="chat-main">
+        <div id="messages" class="messages"></div>
+        <div id="chat-status" class="msg"></div>
+        <form id="chat-form" class="composer">
+          <textarea id="chat-input" rows="2" maxlength="4000"
+            placeholder="Sorunuzu yazın (Enter: gönder, Shift+Enter: yeni satır)"></textarea>
+          <div class="composer-row">
+            <label class="check"><input type="checkbox" id="use-kb" checked> Bilgi bankasından cevapla</label>
+            <label class="check"><input type="checkbox" id="auto-send" checked> Konuşma bitince otomatik gönder</label>
+            <span class="spacer"></span>
+            <button type="button" id="mic-btn" class="mic" title="Basılı tutun ve konuşun (F8)">🎙 Basılı tutup konuş (F8)</button>
+            <button type="button" id="stop-btn" class="danger hidden">Durdur</button>
+            <button type="submit" id="send-btn" class="primary">Gönder</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+  <script src="/chat.js"></script>
+  <script src="/voice.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+    const show = id => ["setup", "login", "home"].forEach(x => $(x).classList.toggle("hidden", x !== id));
+
+    async function enter(user) {
+      show("home");
+      $("who").textContent = user.username + " ";
+      $("who").append(el("span", { class: "badge " + (user.role === "admin" ? "admin" : "") }, user.role));
+      $("admin-link").classList.toggle("hidden", user.role !== "admin");
+      $("kb-link").classList.toggle("hidden", user.role !== "admin");
+      loadStatus();
+      Chat.start();
+      Voice.init();
+    }
+
+    async function loadStatus() {
+      const rows = [["Sunucu", "ok"], ["Ollama", "ollama"], ["Sohbet modeli", "llm_ready"], ["Arama modeli", "embed_ready"]];
+      const box = $("status"); box.replaceChildren();
+      try {
+        const d = await api("/api/health");
+        for (const [name, key] of rows) {
+          box.append(el("div", { class: "row" }, el("span", {}, name),
+            el("b", { class: d[key] ? "msg ok" : "msg error" }, d[key] ? "Hazır" : "Hazır değil")));
+        }
+        box.append(el("div", { class: "row" }, el("span", {}, "Konuşma tanıma"),
+          el("b", { class: d.stt_loaded ? "msg ok" : "msg" }, d.stt_loaded ? "Hazır" : "İlk kullanımda yüklenir")));
+        box.append(el("div", { class: "row" }, el("span", {}, "Bilgi bankası"),
+          el("b", { class: d.kb_count ? "msg ok" : "msg error" },
+            d.kb_count ? d.kb_count + " kayıt" : "BOŞ (kayıt eklenmeli)")));
+      } catch (_) { box.append(el("p", { class: "msg error" }, "Sunucuya ulaşılamadı.")); }
+    }
+
+    async function init() {
+      const st = await api("/api/auth/state");
+      if (st.user) return enter(st.user);
+      show(st.setup_needed ? "setup" : "login");
+      (st.setup_needed ? $("s-user") : $("l-user")).focus();
+    }
+
+    $("setup-form").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      if ($("s-pw").value !== $("s-pw2").value) return say($("s-msg"), "Şifreler aynı değil.");
+      try { enter(await api("/api/auth/setup", "POST", { username: $("s-user").value, password: $("s-pw").value })); }
+      catch (e) { say($("s-msg"), e.message); }
+    });
+    $("login-form").addEventListener("submit", async ev => {
+      ev.preventDefault();
+      try { enter(await api("/api/auth/login", "POST", { username: $("l-user").value, password: $("l-pw").value })); }
+      catch (e) { say($("l-msg"), e.message); $("l-pw").value = ""; }
+    });
+    $("logout-btn").addEventListener("click", logout);
+    $("pw-btn").addEventListener("click", openPasswordDialog);
+    init();
+  </script>
+</body>
+</html>
