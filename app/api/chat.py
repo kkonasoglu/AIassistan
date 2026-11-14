@@ -163,7 +163,7 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
             yield _sse({"type": "status", "text": "Bilgi bankasında yok, internette aranıyor…"})
             results = await run(websearch.search, text)
             if not results:
-                yield say(fallback)
+                yield say(fallback + settings.web_failed_note)
                 return
             state["cards"] = [{"title": r["title"], "solution": r["snippet"], "url": r["url"],
                                "kind": "web"} for r in results]

@@ -53,6 +53,13 @@ class SearchFunction(unittest.TestCase):
         with patch("ddgs.DDGS", side_effect=OSError("internet yok")):
             self.assertEqual(websearch.search("yazıcı sorunu"), [])
 
+    def test_retries_once_after_a_failure(self):
+        ok = [{"title": "A", "href": "https://a.com", "body": "x"}]
+        with patch("ddgs.DDGS") as d, patch("time.sleep"):
+            d.return_value.text.side_effect = [Exception("No results found"), ok]
+            self.assertEqual(len(websearch.search("dolar kaç tl")), 1)
+        self.assertEqual(d.return_value.text.call_count, 2)
+
     def test_too_short_query_is_not_sent(self):
         with patch("ddgs.DDGS") as d:
             self.assertEqual(websearch.search("12345678"), [])
@@ -116,7 +123,7 @@ class ChatFallback(unittest.TestCase):
              patch("app.services.rag.search", return_value=[]), patch("app.services.rag.count", return_value=3), \
              patch("app.services.websearch.search", return_value=[]):
             ev = self.ask("yazıcı ağda görünmüyor")
-        self.assertEqual(text_of(ev), settings.no_kb_message)
+        self.assertEqual(text_of(ev), settings.no_kb_message + settings.web_failed_note)  # sebebi söylenir
         self.assertEqual(ev[-1]["type"], "done")
 
     def test_switch_off_keeps_everything_local(self):

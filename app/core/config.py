@@ -114,6 +114,10 @@ class Settings(BaseSettings):
     web_results: int = 3
     web_timeout: int = 8
     web_region: str = "tr-tr"
+    web_failed_note: str = (   # arama denendi ama sonuç gelmedi (internet yok / DuckDuckGo yanıt vermedi)
+        " İnternet araması da sonuç vermedi (bağlantı yok ya da arama servisi yanıt vermedi); "
+        "biraz sonra tekrar deneyebilirsiniz."
+    )
     web_note: str = (
         "Bilgi bankasında kayıt bulamadım, internette şunları buldum. Bunlar şirket "
         "kaydı değil, genel kaynaklardır: uygulamadan önce kontrol edin."

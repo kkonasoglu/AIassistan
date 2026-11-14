@@ -6,6 +6,7 @@ sohbet geçmişi ve kullanıcı adı ASLA gönderilmez. Sonuçlar modele özetle
 """
 import logging
 import re
+import time
 
 from app.core.config import settings
 
@@ -28,13 +29,17 @@ def search(text: str) -> list[dict]:
     query = sanitize(text)
     if len(query) < 3:
         return []
-    try:
-        from ddgs import DDGS
-        raw = DDGS(timeout=settings.web_timeout).text(
-            query, region=settings.web_region, max_results=settings.web_results)
-    except Exception as e:                       # ağ yok, engellendi, kota...
-        log.warning("internet araması başarısız: %s", e)
-        return []
+    raw = None
+    for attempt in range(2):                     # DuckDuckGo ara sıra boş/hata döner: bir kez daha dene
+        try:
+            from ddgs import DDGS
+            raw = DDGS(timeout=settings.web_timeout).text(
+                query, region=settings.web_region, max_results=settings.web_results)
+            break
+        except Exception as e:                   # ağ yok, engellendi, kota, sonuç yok...
+            log.warning("internet araması başarısız (deneme %d): %s", attempt + 1, e)
+            if attempt == 0:
+                time.sleep(1.5)
     out = []
     for r in raw or []:
         url = str(r.get("href") or "")
