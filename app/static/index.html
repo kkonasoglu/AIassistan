@@ -85,7 +85,7 @@
       $("admin-link").classList.toggle("hidden", user.role !== "admin");
       $("kb-link").classList.toggle("hidden", user.role !== "admin");
       loadStatus();
-      Dinyo.init();
+      Dinyo.init(user.username);
       Chat.start();
       Voice.init();
     }

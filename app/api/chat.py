@@ -276,7 +276,7 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
                             note = None
                     yield say(note or notes.template_note(hits))
                 elif intent.smalltalk(text):
-                    yield say(intent.smalltalk(text))
+                    yield say(intent.personalize(intent.smalltalk(text), user.username))
                 elif await loop.run_in_executor(None, rag.count) == 0:
                     # Kayıt bulunamamasının sebebi eşleşmeme değil, bankanın boş olması
                     async for ev in web_offer(settings.empty_kb_message):

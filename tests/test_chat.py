@@ -129,6 +129,13 @@ class Intent(unittest.TestCase):
         self.assertEqual(intent.smalltalk("nasılsın"), intent.HOW_ARE_YOU)
         self.assertEqual(intent.smalltalk("tamam"), intent.ACK)
 
+    def test_greetings_use_the_users_name(self):
+        self.assertEqual(intent.personalize(intent.GREETING, "ayse"),
+                         "Merhaba Ayse! Size nasıl yardımcı olabilirim? Yaşadığınız sorunu veya hata kodunu yazmanız yeterli.")
+        self.assertEqual(intent.display_name("ismail"), "İsmail")     # Türkçe i
+        self.assertEqual(intent.display_name("ığdır"), "Iğdır")
+        self.assertEqual(intent.personalize("Rica ederim! Başka.", "bob"), "Rica ederim Bob! Başka.")
+
     def test_not_smalltalk(self):
         for q in ("merhaba fatura gönderemiyorum ve bir hata alıyorum sürekli", "KNK-204 nedir",
                   "Pizza nasıl yapılır?", "", "   "):
@@ -325,14 +332,14 @@ class ChatApi(unittest.TestCase):
         cs.assert_not_called()
         self.assertEqual(text_of(ev), settings.empty_kb_message)
         self.assertIn("boş", text_of(ev))
-        self.assertEqual(text_of(greet), intent.GREETING)   # selamlaşma yine normal cevaplanır
+        self.assertEqual(text_of(greet), intent.personalize(intent.GREETING, "bob"))   # selamlaşma yine normal cevaplanır
 
     def test_greeting_and_thanks_get_friendly_replies_without_model(self):
         with patch("app.services.rag.search", return_value=[]), \
              patch("app.services.llm.chat_stream") as cs:
             cid = self.new_conv(self.bob)
-            self.assertEqual(text_of(events(self.ask(self.bob, cid, "Merhaba"))), intent.GREETING)
-            self.assertEqual(text_of(events(self.ask(self.bob, cid, "teşekkürler"))), intent.THANKS)
+            self.assertEqual(text_of(events(self.ask(self.bob, cid, "Merhaba"))), intent.personalize(intent.GREETING, "bob"))
+            self.assertEqual(text_of(events(self.ask(self.bob, cid, "teşekkürler"))), intent.personalize(intent.THANKS, "bob"))
         cs.assert_not_called()
 
     def test_kb_hit_wins_over_greeting(self):

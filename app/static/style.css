@@ -157,42 +157,56 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
-/* ================= Siyah tema + Dinyo ================= */
-.dinyo { display: flex; align-items: center; gap: 16px; margin: 12px 0 0; padding: 10px 18px;
+/* ================= Dinyo: neon mavisi iki yuvarlak (robot) ================= */
+.dinyo { --neon: #19c8ff; --neon-glow: #0aa4ff; --lx: 0px; --ly: 0px;
+         display: flex; align-items: center; gap: 16px; margin: 12px 0 0; padding: 10px 18px;
          background: var(--face); border: 1px solid var(--line); border-radius: 16px; flex: none; }
-.dinyo .face { display: flex; gap: 14px; padding: 6px 4px; }
-.dinyo .eye { position: relative; width: 44px; height: 56px; border-radius: 50%; overflow: hidden; background: #f3f6ff;
-              box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
-              transition: transform .14s ease, box-shadow .3s; }
-.dinyo .eye.blink { transform: scaleY(.08); }
-.dinyo .pupil { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
-                background: radial-gradient(circle at 32% 30%, #fff 0 2.5px, transparent 3px), #0a0b12;
-                transition: transform .18s ease-out, width .2s, height .2s, margin .2s; }
-.dinyo .lid, .dinyo .cheek { position: absolute; left: -20%; width: 140%; background: var(--face);
-                             transition: height .25s ease, transform .25s ease; }
-.dinyo .lid { top: -2px; height: 0; transform-origin: 50% 0; }
-.dinyo .cheek { bottom: -2px; height: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.dinyo .face { display: flex; gap: 22px; padding: 8px 14px; background: #000; border: 1px solid #16202b; border-radius: 40px;
+               box-shadow: inset 0 0 18px rgba(25, 200, 255, .08); }
+.dinyo .eye { width: 34px; height: 34px; translate: var(--lx) var(--ly); transition: translate .16s ease-out, scale .2s;
+              filter: drop-shadow(0 0 7px var(--neon-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--neon-glow) 60%, transparent));
+              animation: idle 4s ease-in-out infinite; }
+.dinyo .right { animation-delay: .15s; }
+.dinyo .dot { width: 100%; height: 100%; border-radius: 50%; transition: clip-path .25s ease, transform .2s ease, height .2s, background .25s;
+              background: radial-gradient(circle at 38% 34%, #d9f7ff 0 14%, var(--neon) 42%, #0b8fe0 100%); }
+.dinyo .eye.blink .dot { transform: scaleY(.08); }
 .dinyo .say { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
-.dinyo .say b { font-size: 15px; }
+.dinyo .say b { font-size: 15px; letter-spacing: .02em; }
 .dinyo .say span { color: var(--muted); font-size: 13.5px; }
+@keyframes idle { 50% { scale: .94; } }
 
-/* durumlar */
-.dinyo[data-mood="happy"] .cheek { height: 62%; }
-.dinyo[data-mood="happy"] .eye { box-shadow: 0 0 22px color-mix(in srgb, var(--ok) 55%, transparent); }
-.dinyo[data-mood="sad"] .lid { height: 46%; }
-.dinyo[data-mood="sad"] .left .lid { transform: rotate(-20deg); }
-.dinyo[data-mood="sad"] .right .lid { transform: rotate(20deg); }
-.dinyo[data-mood="sad"] .eye { box-shadow: 0 0 20px color-mix(in srgb, var(--danger) 45%, transparent); }
-.dinyo[data-mood="confused"] .left .lid { height: 34%; }
-.dinyo[data-mood="confused"] .right .eye, .dinyo[data-mood="confused"] .right { transform: translateY(-3px); }
-.dinyo[data-mood="confused"] .pupil { width: 17px; height: 17px; margin: -8px 0 0 -8px; }
-.dinyo[data-mood="listening"] .eye { transform: scale(1.12); box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 70%, transparent); }
-.dinyo[data-mood="listening"] .pupil { width: 28px; height: 28px; margin: -14px 0 0 -14px; }
-.dinyo[data-mood="typing"] .lid { height: 14%; }
-.dinyo[data-mood="thinking"] .lid, .dinyo[data-mood="searching"] .lid { height: 22%; }
-.dinyo[data-mood="thinking"] .pupil, .dinyo[data-mood="searching"] .pupil { animation: ponder 3.2s ease-in-out infinite; }
-.dinyo[data-mood="searching"] .pupil { animation-duration: 1.4s; }
-@keyframes ponder { 0%, 100% { transform: translate(-8px, -9px); } 33% { transform: translate(9px, -10px); } 66% { transform: translate(2px, -3px); } }
+/* yazıyor: yuvarlaklar yazılan yere bakar, odaklanıp hafif parlar */
+.dinyo[data-mood="typing"] .dot { transform: scaleY(.88); }
+.dinyo[data-mood="typing"] .eye { animation: none; filter: drop-shadow(0 0 9px var(--neon-glow)) drop-shadow(0 0 22px var(--neon-glow)); }
+
+/* düşünüyor: iki yuvarlak sırayla yanıp sönerek sağa sola tarar */
+.dinyo[data-mood="thinking"] .eye { animation: scan 1.6s ease-in-out infinite; }
+.dinyo[data-mood="thinking"] .right { animation-delay: .25s; }
+.dinyo[data-mood="searching"] .eye { animation: scan .9s ease-in-out infinite; }
+.dinyo[data-mood="searching"] .right { animation-delay: .15s; }
+@keyframes scan { 0%, 100% { transform: translateX(-9px); opacity: .55; } 50% { transform: translateX(9px); opacity: 1; } }
+
+/* cevap veriyor: konuşur gibi ritimle atar (eşzamanlı büyüyüp küçülür) */
+.dinyo[data-mood="answering"] .eye { animation: talk .42s ease-in-out infinite alternate; }
+@keyframes talk { from { scale: 1; } to { scale: 1.2 1.05; } }
+
+/* buldu: gülen gözler ^ ^ (yuvarlağın üst yarısı), yeşilimsi parlama */
+.dinyo[data-mood="happy"] .dot { clip-path: inset(0 0 48% 0); }
+.dinyo[data-mood="happy"] .eye { animation: hop .5s ease-out 1; --neon-glow: #19e6a0; }
+@keyframes hop { 40% { transform: translateY(-6px); } }
+
+/* bulamadı: biri küçülür, biri yukarıda; "hmm" */
+.dinyo[data-mood="confused"] .left { scale: .7; }
+.dinyo[data-mood="confused"] .right { transform: translateY(-5px); }
+.dinyo[data-mood="confused"] .eye { animation: none; }
+
+/* hata: yuvarlaklar sönükleşip aşağı sarkar, kırmızımsı parlama */
+.dinyo[data-mood="sad"] .dot { clip-path: inset(46% 0 0 0); opacity: .8; }
+.dinyo[data-mood="sad"] .eye { animation: none; --neon-glow: #ff5a4f; }
+
+/* dinliyor: büyür, halka gibi dalga yayar */
+.dinyo[data-mood="listening"] .eye { scale: 1.18; animation: listen 1s ease-in-out infinite; }
+@keyframes listen { 50% { scale: 1.3; } }
 
 /* siyah tema */
 :root { --face: #050507; }
@@ -205,4 +219,3 @@ button.side-toggle { padding: 4px 10px; font-size: 18px; line-height: 1.2; }
 @media (max-width: 760px) {
   .chat-layout.side-collapsed { grid-template-columns: 1fr; grid-template-rows: 0 1fr; }
 }
-.dinyo[data-mood="happy"] .pupil { transform: translate(0, -7px) !important; }

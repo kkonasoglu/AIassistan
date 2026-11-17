@@ -23,6 +23,18 @@ _HOW = re.compile(r"\bnasılsın\b")
 _ACK = {"tamam", "tamamdır", "anladım", "olur", "ok", "okey", "peki", "süper", "harika"}
 
 
+def display_name(username: str) -> str:
+    """Hitap için kullanıcı adının baş harfi büyütülür (Türkçe i/ı kuralıyla): ayse -> Ayse."""
+    u = username.strip()
+    first = u[:1].replace("i", "İ").replace("ı", "I").upper()
+    return first + u[1:]
+
+
+def personalize(reply: str, username: str) -> str:
+    """Hazır selamlaşma cevabındaki ilk ünleme kullanıcının adı eklenir: "Merhaba!" -> "Merhaba Ayse!"."""
+    return reply.replace("!", f" {display_name(username)}!", 1)
+
+
 def smalltalk(text: str) -> str | None:
     """Selamlaşma / teşekkür / onay ise hazır cevabı, değilse None döner.
     Yalnızca kısa mesajlarda ve bilgi bankasında eşleşme yokken kullanılır."""

@@ -13,9 +13,7 @@ Python + FastAPI + sade HTML/JS arayüz. Dışarıya veri göndermez.
    Sunucunun IP'si değişirse: `.venv\Scripts\python.exe -m scripts.make_cert --force`
 
 ## Nasıl çalışır
-- **Dinyo (karakter):** sohbetin üstünde iki göz var; fareyi izler, göz kırpar, yazarken size bakar, düşünürken etrafa bakar, 
-  cevabı bulunca gülümser, bulamayınca şaşırır, mikrofon açıkken gözleri büyür. Arayüz siyah temadır. Sol üstteki ☰ düğmesi 
-  sohbet listesini açıp kapatır (tercih tarayıcıda hatırlanır). Karakter kodu: `app/static/dinyo.js`.
+- **Dinyo (karakter):** sohbetin üstünde robot gibi iki neon mavisi yuvarlak var. Fareyi ve **yazdığınız yeri** izler, göz kırpar; düşünürken sağa sola tarar, cevap verirken ritimle atar, çözümü bulunca gülen kemer şekline gelir, bulamayınca biri küçülür, hata olunca sönükleşir, mikrofon açıkken büyür. Kullanıcıya **adıyla** hitap eder ("Buldum Ayse!"; selamlaşma cevapları da "Merhaba Ayse!"). Arayüz siyah temadır. Sol üstteki ☰ sohbet listesini açıp kapatır. Kod: `app/static/dinyo.js`.
 - Bilgi, sistemin **kendi veritabanında** durur (`data/vectorstore`, ChromaDB). Klasöre dosya konmaz;
   kayıtları yalnızca adminler ekler/düzenler/siler: sohbet ekranında **Bilgi bankası** düğmesi
   (`/knowledge.html`). Silme gizlemedir, "Silinenleri göster" ile geri alınır. **JSON dışa aktar** yedek
