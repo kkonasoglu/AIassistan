@@ -41,8 +41,14 @@ const Chat = (() => {
   }
 
   function showWelcome() {
+    const chips = el("div", { class: "chips" });
+    for (const q of ["KNK-204 hatası alıyorum", "e-Fatura gönderemiyorum", "e-İmza cihazı görünmüyor"])
+      chips.append(el("button", { type: "button", class: "chip", onclick: () => send(q) }, q));
     $("messages").replaceChildren(el("div", { class: "welcome muted" },
-      "Merhaba! Yaşadığınız sorunu ya da hata kodunu yazın, bilgi bankasındaki çözümü hemen getireyim."));
+      el("div", { class: "hero" }, "✦"),
+      el("h3", {}, "Size nasıl yardımcı olabilirim?"),
+      el("p", {}, "Yaşadığınız sorunu ya da hata kodunu yazın; bilgi bankasındaki çözümü hemen getireyim. Konuşmak için F8'e basılı tutun."),
+      chips));
   }
 
   async function refreshList() {
