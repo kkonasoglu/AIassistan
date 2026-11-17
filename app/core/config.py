@@ -108,19 +108,21 @@ class Settings(BaseSettings):
         "deneyebilir ya da bu bilginin eklenmesini bir yöneticiden isteyebilirsiniz."
     )
 
-    # --- İnternet araması (DuckDuckGo): bilgi bankasında cevap yoksa otomatik ---
+    # --- İnternet araması (DuckDuckGo): bilgi bankasında cevap yoksa ÖNCE SORULUR, "evet" denirse aranır ---
     # Dışarı yalnızca temizlenmiş soru cümlesi gider. Tamamen offline kalmak için: OFIS_WEB_SEARCH=false
     web_search: bool = True
     web_results: int = 3
     web_timeout: int = 8
     web_region: str = "tr-tr"
+    web_offer_question: str = "İnternette aramamı ister misiniz? (evet / hayır)"
+    web_declined_message: str = "Tamam, internette aramadım. Sorunu farklı kelimelerle yazarak tekrar deneyebilirsiniz."
     web_failed_note: str = (   # arama denendi ama sonuç gelmedi (internet yok / DuckDuckGo yanıt vermedi)
         " İnternet araması da sonuç vermedi (bağlantı yok ya da arama servisi yanıt vermedi); "
         "biraz sonra tekrar deneyebilirsiniz."
     )
     web_note: str = (
-        "Bilgi bankasında kayıt bulamadım, internette şunları buldum. Bunlar şirket "
-        "kaydı değil, genel kaynaklardır: uygulamadan önce kontrol edin."
+        "İnternette şunları buldum. Bunlar şirket kaydı değil, genel kaynaklardır: "
+        "uygulamadan önce kontrol edin."
     )
 
     # --- Sohbet hafızası (kısa süreli) ---

@@ -25,13 +25,13 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 - Cevap davranışı: günlük dili anlasın; alakalı kayıt varsa **anında kart olarak birebir** göstersin; kayıt yoksa uydurmasın, "kayıt bulamadım" desin (bu durumda model hiç çağrılmaz).
 - Kullanıcılar ve sohbet geçmişi SQLite'ta; her kullanıcının sohbeti kendine özel.
 
-## 4. Yapılanlar (hepsi çalışır, 156 test geçti)
+## 4. Yapılanlar (hepsi çalışır, 160 test geçti)
 1. Klasör yapısı, kurulum (`setup.ps1`), HTTPS sertifikası.
 2. Web uygulaması: giriş, roller, kullanıcı yönetimi (admin paneli), sohbet + akışlı cevap, sohbet geçmişi, LLM kuyruğu.
 3. RAG: hata kodu birebir eşleşme + anlamsal arama, eşikler `max_distance=0.45`, `source_margin=0.08`.
 4. Bilgi bankası yönetimi (`/knowledge.html`): ekle/düzenle/gizle/geri al/ara/JSON dışa aktar/Arama testi.
 5. Sohbetten öğrenme ("bunu kaydet") + onay + yetki kontrolü.
-7. **İnternet araması (DuckDuckGo):** kayıt yoksa OTOMATİK arar (kullanıcı kararı: kişiye bağlı olmasın). Sonuçlar birebir "web" kartı, model çağrılmaz. Gizlilik: yalnızca temizlenmiş soru gider. Kapatma: `OFIS_WEB_SEARCH=false`. `app/services/websearch.py`. DuckDuckGo aralıklı boş/hata döner: bir kez yeniden dener, yine olmazsa "internet araması da sonuç vermedi" der (sessiz kalmaz). Anlık değerler (dolar kuru vb.) için sayı söylemez, kaynak kartları verir; sonuçları modele özetletmek bilinçli olarak YAPILMADI (3B model uyduruyor), daha güçlü modelle denenebilir.
+7. **İnternet araması (DuckDuckGo):** kayıt yoksa "internette aramamı ister misiniz?" diye SORAR, yalnızca "evet" denirse arar (kullanıcı kararı; ilk sürüm otomatikti, sonra soruya çevrildi). Bekleyen soru konuşma geçmişinden bulunur (son asistan mesajı teklifle bitiyorsa). Kapalıyken (`OFIS_WEB_SEARCH=false`) soru da sorulmaz. Sonuçlar birebir "web" kartı, model çağrılmaz. Gizlilik: yalnızca temizlenmiş soru gider. Kapatma: `OFIS_WEB_SEARCH=false`. `app/services/websearch.py`. DuckDuckGo aralıklı boş/hata döner: bir kez yeniden dener, yine olmazsa "internet araması da sonuç vermedi" der (sessiz kalmaz). Anlık değerler (dolar kuru vb.) için sayı söylemez, kaynak kartları verir; sonuçları modele özetletmek bilinçli olarak YAPILMADI (3B model uyduruyor), daha güçlü modelle denenebilir.
 6. **Bas-konuş (Whisper):** F8 tuşu veya 🎙 düğmesi basılı tut → sunucuda faster-whisper (`small`, CPU) → yazı → otomatik gönder. Ses geçici dosyada çözülür ve silinir.
 
 ## 5. Henüz doğrulanmayanlar (kullanıcı denemeli)
@@ -51,6 +51,8 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 3. `Ofis Asistanı.bat` ile başlat; ilk açılışta admin hesabı oluşturulur. Whisper modeli ilk kullanımda iner (~460 MB, internet gerekir).
 4. Eski verileri taşımak için eski PC'deki `data/` klasörünü kopyala (kullanıcılar, sohbetler, bilgi bankası). IP değiştiyse: `.venv\Scripts\python.exe -m scripts.make_cert --force`.
 5. Diğer PC'ler için güvenlik duvarı kuralı: README'deki `New-NetFirewallRule ...` komutu.
+
+- Arayüz: sade/kurumsal mavi, sohbet tüm ekranı kullanır, açık/koyu tema sisteme uyar. "Bilgi bankasından cevapla" kutusu kaldırıldı: bilgi bankası her zaman kullanılır (sunucudaki `use_kb=false` serbest sohbet yolu testler için duruyor, arayüz kullanmıyor).
 
 ## 8. Teknik tuzaklar
 - Kodda değişiklik yapınca çalışan sunucu yeni kodu almaz: kapatıp `Ofis Asistanı.bat` ile yeniden aç ("yeni özellik çalışmıyor" şikâyetinin ilk nedeni budur). (tekrar düşülmesin)

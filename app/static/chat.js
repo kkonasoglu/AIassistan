@@ -41,14 +41,17 @@ const Chat = (() => {
   }
 
   function showWelcome() {
-    const chips = el("div", { class: "chips" });
-    for (const q of ["KNK-204 hatası alıyorum", "e-Fatura gönderemiyorum", "e-İmza cihazı görünmüyor"])
-      chips.append(el("button", { type: "button", class: "chip", onclick: () => send(q) }, q));
-    $("messages").replaceChildren(el("div", { class: "welcome muted" },
-      el("div", { class: "hero" }, "✦"),
+    const tips = [["KNK-204 hatası alıyorum", "Hata koduyla sorun çözümü"],
+                  ["e-Fatura gönderemiyorum", "Fatura gönderim sorunları"],
+                  ["e-İmza cihazı görünmüyor", "İmza cihazı ve sertifika"]];
+    const grid = el("div", { class: "tips" });
+    for (const [q, d] of tips)
+      grid.append(el("button", { type: "button", class: "tip", onclick: () => send(q) },
+        el("b", {}, q), el("span", {}, d)));
+    $("messages").replaceChildren(el("div", { class: "welcome" },
       el("h3", {}, "Size nasıl yardımcı olabilirim?"),
-      el("p", {}, "Yaşadığınız sorunu ya da hata kodunu yazın; bilgi bankasındaki çözümü hemen getireyim. Konuşmak için F8'e basılı tutun."),
-      chips));
+      el("p", { class: "muted" }, "Sorunu ya da hata kodunu yazın; kayıtlı çözümü hemen getiririm. Konuşmak için F8'e basılı tutun."),
+      grid));
   }
 
   async function refreshList() {
@@ -124,7 +127,7 @@ const Chat = (() => {
       const res = await fetch(`/api/chat/conversations/${convId}/stream`, {
         method: "POST", credentials: "same-origin", signal: controller.signal,
         headers: { "X-Requested-With": "fetch", "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, use_kb: $("use-kb").checked }),
+        body: JSON.stringify({ message: text }),
       });
       if (!res.ok) {
         let d = ""; try { d = (await res.json()).detail; } catch (_) {}

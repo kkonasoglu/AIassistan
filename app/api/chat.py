@@ -5,7 +5,7 @@ Akış (bilgi bankası açıkken):
      BİREBİR ve HEMEN gönderilir; kullanıcı modeli beklemez.
   2. Ardından model, kartların üstüne günlük dille kısa bir not yazar (`token` olayları).
   3. Kayıt yoksa: selamlaşma/teşekkür hazır cevapla, devam sorusu geçmişten, diğerleri
-     otomatik internet araması (websearch) ile; sonuç/internet yoksa "kayıt bulamadım".
+     "kayıt yok, internette aramamı ister misiniz?" diye sorulur; yalnızca "evet" denirse aranır (websearch).
      Model kendi bilgisinden uydurmaz; web sonuçları özetlenmeden birebir gösterilir.
 
 Olay türleri (her biri `data: {json}` satırı):
@@ -155,15 +155,30 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
             yield _sse({"type": "cards", "cards": state["cards"]})
             yield say(f'Kaydedildi: "{title}". Artık sohbette aranabilir.')
 
-        async def web_fallback(fallback: str):
-            """Bilgi bankasında cevap yok: otomatik internet araması (sonuçlar birebir kart)."""
-            if not settings.web_search:
+        async def web_offer(fallback: str):
+            """Bilgi bankasında cevap yok: önce "yok" de, internette aramayı SOR (kullanıcı onaylamadan aranmaz)."""
+            if settings.web_search:
+                yield say(f"{fallback} {settings.web_offer_question}")
+            else:
                 yield say(fallback)
-                return
-            yield _sse({"type": "status", "text": "Bilgi bankasında yok, internette aranıyor…"})
-            results = await run(websearch.search, text)
+
+        def pending_web_question() -> str | None:
+            """Son asistan mesajı internet teklifiyse, teklife konu olan kullanıcı sorusunu döner."""
+            if not settings.web_search:
+                return None
+            msgs = chat_store.recent_messages(user.id, conv_id, 4)   # son eleman = şimdiki mesaj
+            if (len(msgs) >= 3 and msgs[-2]["role"] == "assistant"
+                    and msgs[-2]["content"].endswith(settings.web_offer_question)
+                    and msgs[-3]["role"] == "user"):
+                return msgs[-3]["content"]
+            return None
+
+        async def web_search_now(question: str):
+            """Kullanıcı "evet" dedi: ara, sonuçları birebir kart olarak göster."""
+            yield _sse({"type": "status", "text": "İnternette aranıyor…"})
+            results = await run(websearch.search, question)
             if not results:
-                yield say(fallback + settings.web_failed_note)
+                yield say(settings.web_failed_note.strip())
                 return
             state["cards"] = [{"title": r["title"], "solution": r["snippet"], "url": r["url"],
                                "kind": "web"} for r in results]
@@ -203,6 +218,7 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
         try:
             draft = await run(learning.get_draft, user.id, conv_id) if user.is_admin else None
             command = intent.parse_learn_command(text)
+            web_q = await run(pending_web_question) if draft is None else None
             if draft and intent.is_cancel(text):
                 await run(learning.clear_draft, conv_id)
                 yield say("Tamam, kaydetmedim.")
@@ -228,6 +244,11 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
                     state["cards"] = [{"title": title, "solution": draft["solution"], "kind": "draft"}]
                     yield _sse({"type": "cards", "cards": state["cards"]})
                     yield say(settings.learn_preview_basic_message)
+            elif web_q and intent.is_web_yes(text):
+                async for ev in web_search_now(web_q):
+                    yield ev
+            elif web_q and intent.is_web_no(text):
+                yield say(settings.web_declined_message)
             elif command is not None:
                 async for ev in learn(command):
                     yield ev
@@ -258,7 +279,7 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
                     yield say(intent.smalltalk(text))
                 elif await loop.run_in_executor(None, rag.count) == 0:
                     # Kayıt bulunamamasının sebebi eşleşmeme değil, bankanın boş olması
-                    async for ev in web_fallback(settings.empty_kb_message):
+                    async for ev in web_offer(settings.empty_kb_message):
                         yield ev
                 elif any(m["role"] == "assistant" for m in history[:-1]) \
                         and memory.looks_like_followup(text):
@@ -272,7 +293,7 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
                         async for ev in generate(follow, settings.followup_prompt):
                             yield ev
                 else:
-                    async for ev in web_fallback(settings.no_kb_message):
+                    async for ev in web_offer(settings.no_kb_message):
                         yield ev
 
             mid = chat_store.add_message(user.id, conv_id, "assistant", state["reply"],

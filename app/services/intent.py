@@ -72,6 +72,22 @@ def parse_learn_command(text: str) -> str | None:
     return " ".join(content.replace(" :", ":").split()).strip(" :-,")
 
 
+_WEB_YES = {"evet", "ara", "araştır", "olur", "tamam", "tamamdır", "ok", "okey", "evet ara", "evet araştır",
+            "evet lütfen", "lütfen", "ara lütfen", "araştır lütfen", "internetten ara", "internette ara",
+            "evet isterim", "isterim", "istiyorum", "evet olur", "tamam ara", "evet ister"}
+_WEB_NO = {"hayır", "hayir", "yok", "gerek yok", "istemiyorum", "istemem", "olmasın", "vazgeç", "iptal",
+           "hayır teşekkürler", "hayır istemiyorum", "hayır gerek yok", "yok gerek yok"}
+
+
+def is_web_yes(text: str) -> bool:
+    """"İnternette aramamı ister misiniz?" sorusuna olumlu cevap."""
+    return _clean_word(text) in _WEB_YES
+
+
+def is_web_no(text: str) -> bool:
+    return _clean_word(text) in _WEB_NO
+
+
 def is_confirm(text: str) -> bool:
     return _clean_word(text) in _CONFIRM
 
