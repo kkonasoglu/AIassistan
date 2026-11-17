@@ -26,7 +26,7 @@ from pydantic import BaseModel
 
 from app.api.deps import current_user
 from app.core.config import settings
-from app.services import (chat_store, intent, knowledge, learning, llm, llm_queue, memory,
+from app.services import (chat_store, commands, intent, knowledge, learning, llm, llm_queue, memory,
                           notes, rag, websearch)
 from app.services.users import User
 
@@ -139,6 +139,15 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
 
         async def run(fn, *args):
             return await loop.run_in_executor(None, fn, *args)
+
+        def last_assistant_reply() -> str | None:
+            """"Tekrar et" için: konuşmadaki son asistan cevabı (kartlar dahil)."""
+            for m in reversed(chat_store.recent_messages(user.id, conv_id, 8)[:-1]):
+                if m["role"] == "assistant":
+                    parts = [m["content"]] + [f"{c['title']}\n{c['solution']}" for c in (m.get("cards") or [])
+                                              if c.get("kind") not in ("web", "draft")]
+                    return "\n\n".join(p for p in parts if p).strip() or None
+            return None
 
         def previous_info() -> str:
             """"Bunu kaydet" tek başına yazıldıysa: konuşmadaki son uzun (bilgi içeren) mesaj."""
@@ -255,6 +264,8 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
             elif not body.use_kb:  # serbest sohbet (bilgi bankası kapalı)
                 async for ev in generate(history, None):
                     yield ev
+            elif (quick := await run(commands.quick_reply, text, user.call_name, last_assistant_reply)) is not None:
+                yield say(quick)   # "merhaba de", "sen kimsin", "saat kaç": komutu yerine getir
             else:
                 hits = await loop.run_in_executor(None, rag.search, text)
                 if hits:
@@ -275,6 +286,8 @@ def stream(conv_id: int, body: MessageBody, user: User = Depends(current_user)):
                         except Exception:
                             note = None
                     yield say(note or notes.template_note(hits))
+                elif commands.weak_say(text):
+                    yield say(commands.weak_say(text))   # "merhaba de": eşleşme yokken komutu yerine getir
                 elif intent.smalltalk(text):
                     yield say(intent.personalize(intent.smalltalk(text), user.call_name))
                 elif await loop.run_in_executor(None, rag.count) == 0:
