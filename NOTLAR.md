@@ -25,7 +25,7 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 - Cevap davranışı: günlük dili anlasın; alakalı kayıt varsa **anında kart olarak birebir** göstersin; kayıt yoksa uydurmasın, "kayıt bulamadım" desin (bu durumda model hiç çağrılmaz).
 - Kullanıcılar ve sohbet geçmişi SQLite'ta; her kullanıcının sohbeti kendine özel.
 
-## 4. Yapılanlar (hepsi çalışır, 169 test geçti)
+## 4. Yapılanlar (hepsi çalışır, 184 test geçti)
 1. Klasör yapısı, kurulum (`setup.ps1`), HTTPS sertifikası.
 2. Web uygulaması: giriş, roller, kullanıcı yönetimi (admin paneli), sohbet + akışlı cevap, sohbet geçmişi, LLM kuyruğu.
 3. RAG: hata kodu birebir eşleşme + anlamsal arama, eşikler `max_distance=0.45`, `source_margin=0.08`.
@@ -34,7 +34,11 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 7. **İnternet araması (DuckDuckGo):** kayıt yoksa "internette aramamı ister misiniz?" diye SORAR, yalnızca "evet" denirse arar (kullanıcı kararı; ilk sürüm otomatikti, sonra soruya çevrildi). Bekleyen soru konuşma geçmişinden bulunur (son asistan mesajı teklifle bitiyorsa). Kapalıyken (`OFIS_WEB_SEARCH=false`) soru da sorulmaz. Sonuçlar birebir "web" kartı, model çağrılmaz. Gizlilik: yalnızca temizlenmiş soru gider. Kapatma: `OFIS_WEB_SEARCH=false`. `app/services/websearch.py`. DuckDuckGo aralıklı boş/hata döner: bir kez yeniden dener, yine olmazsa "internet araması da sonuç vermedi" der (sessiz kalmaz). Anlık değerler (dolar kuru vb.) için sayı söylemez, kaynak kartları verir; sonuçları modele özetletmek bilinçli olarak YAPILMADI (3B model uyduruyor), daha güçlü modelle denenebilir.
 6. **Bas-konuş (Whisper):** F8 tuşu veya 🎙 düğmesi basılı tut → sunucuda faster-whisper (`small`, CPU) → yazı → otomatik gönder. Ses geçici dosyada çözülür ve silinir.
 
+8. **Sesli yanıt (TTS):** Piper (`app/services/tts.py`, `POST /api/voice/speak` → WAV), Türkçe erkek ses `tr_TR-dfki-medium` (F0 ölçümü ~105 Hz = erkek), 9,6 sn cevap ~0,6 sn'de üretilir. Önyüz `app/static/speak.js` (`Speaker`): "Sesli yanıt" kutusu (localStorage `dinyo-speak`), cevaplarda 🔊, yeni soru/yazma/mikrofon sustirir, Dinyo `speaking` durumu. Hata kodları okunurken harf harf (KNK-204 → "K N K, 204"), adımlar "1. adım:" diye okunur (telaffuz gerçek kulakla DOĞRULANMADI).
+
 ## 5. Henüz doğrulanmayanlar (kullanıcı denemeli)
+- **SES LİSANSI (karar kullanıcıda):** varsayılan ses modeli (dfki) **CC BY-NC-SA 4.0** = ticari olmayan kullanım. Şirket içi destek aracında kullanmanın bu kapsama girip girmediğine kullanıcı/şirket karar vermeli; sorunluysa `OFIS_TTS_VOICE` ile başka Piper sesi, `OFIS_TTS_ENABLED=false` ile kapatma, ya da Windows'un yerleşik sesi (örn. Microsoft Tolga) tarayıcı `speechSynthesis` ile alternatif yazılabilir. Model repoya KONMAZ (data/models gitignore), kullanıcı sunucuda kendi indirir.
+- Sesin Türkçe telaffuz kalitesi (özellikle KNK-204, e-Fatura gibi terimler) gerçek kulakla denenmedi; yalnız perde (erkek) ve hız ölçüldü.
 - Türkçe konuşma tanıma doğruluğu (test sesi İngilizceydi). Kötüyse: `OFIS_STT_HOTWORDS="Mysoft konnektör e-Fatura e-İmza KNK"` veya `OFIS_STT_MODEL=medium`.
 - Tarayıcı arayüzü gerçek tarayıcıda (mikrofon izni, F8 basılı tutma) görülmedi.
 - Eşikler gerçek bilgi bankasıyla ayarlanmadı → admin "Arama testi" ile ölç.

@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     stt_hotwords: str = ""
     stt_models_path: Path | None = None    # modelleri başka klasörde tutmak için; boşsa data/models
 
+    # --- Sesli yanıt (metinden konuşmaya): Piper, sunucuda, CPU, çevrimdışı. Türkçe ERKEK ses ---
+    # LİSANS: varsayılan ses CC BY-NC-SA 4.0 (ticari olmayan kullanım). Şirket içi kullanım için kullanıcı karar verir.
+    tts_enabled: bool = True
+    tts_voice: str = "tr_TR-dfki-medium"   # Piper ses adı (Hugging Face rhasspy/piper-voices); ilk kullanımda indirilir
+    tts_length_scale: float = 1.0          # konuşma hızı: <1 hızlı, >1 yavaş
+    tts_max_chars: int = 700               # tek seferde okunacak üst sınır (uzun cevaplar cümle sınırından kesilir)
+    tts_preload: bool = True               # sunucu açılırken modeli arka planda yükle
+    tts_models_path: Path | None = None    # boşsa data/models/tts
+
     # --- LLM ---
     ollama_host: str = "http://localhost:11434"
     llm_model: str = "qwen2.5:3b"
@@ -144,6 +153,10 @@ class Settings(BaseSettings):
     @property
     def models_dir(self) -> Path:
         return self.stt_models_path or self.data_dir / "models"
+
+    @property
+    def tts_dir(self) -> Path:
+        return self.tts_models_path or self.models_dir / "tts"
 
     @property
     def certs_dir(self) -> Path:

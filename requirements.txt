@@ -24,5 +24,8 @@ av>=14,<17
 # İnternet araması (DuckDuckGo): bilgi bankasında cevap yoksa
 ddgs
 
+# Sesli yanıt (metinden konuşmaya): Türkçe erkek ses, sunucuda, çevrimdışı
+piper-tts
+
 # Testler icin
 httpx

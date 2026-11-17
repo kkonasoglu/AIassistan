@@ -7,7 +7,7 @@ const Dinyo = (() => {
     hello: "Merhaba {n}! Ben Dinyo.", idle: "Buradayım {n}, yazabilirsiniz.", typing: "{n}, sizi okuyorum…",
     thinking: "Düşünüyorum {n}…", searching: "İnternette bakıyorum {n}…", answering: "Cevaplıyorum {n}…",
     happy: "Buldum {n}!", confused: "Hmm {n}, bunu bulamadım…", sad: "Bir sorun oldu {n}…",
-    listening: "Sizi dinliyorum {n}…", pet: "Hihi, gıdıklandım {n}!",
+    listening: "Sizi dinliyorum {n}…", speaking: "Konuşuyorum {n}…", pet: "Hihi, gıdıklandım {n}!",
   };
   const REACH = 14;               // yuvarlakların bakış yönünde kayabileceği en fazla piksel
   let root, face, say, eyes = [], mood = "idle", back = null, lastMove = 0, typingTimer = null, who = "";
@@ -55,7 +55,7 @@ const Dinyo = (() => {
     const s = document.createElement("span"); s.textContent = (LINES[next] || "").replace("{n}", who).replace(/\s+([!…,.])/g, "$1").replace(/, +\s*/g, ", ");
     say.replaceChildren(b, s);
     if (next === "idle") look(0, 0);
-    if (["thinking", "searching", "answering"].includes(next)) look(0, 0);
+    if (["thinking", "searching", "answering", "speaking"].includes(next)) look(0, 0);
     if (ms) back = setTimeout(() => set("idle"), ms);
   }
 
@@ -74,6 +74,7 @@ const Dinyo = (() => {
   }
 
   function onTyping(input) {
+    if (typeof Speaker !== "undefined" && Speaker.isPlaying()) Speaker.stop();   // yazmaya başlayınca asistan susar
     if (["thinking", "searching", "answering", "listening"].includes(mood)) return;
     if (mood !== "typing") set("typing");
     const p = caretPoint(input);
@@ -84,7 +85,7 @@ const Dinyo = (() => {
 
   function track(ev) {
     lastMove = Date.now();
-    if (!root || ["thinking", "searching", "answering", "typing"].includes(mood)) return;
+    if (!root || ["thinking", "searching", "answering", "speaking", "typing"].includes(mood)) return;
     lookAt(ev.clientX, ev.clientY, false);
   }
 
@@ -104,7 +105,7 @@ const Dinyo = (() => {
   // Gözlere dokunma: gözler mutlu kısılır, tema rengi sıradakine geçer
   function pet() {
     const color = typeof Theme !== "undefined" ? Theme.next() : "";
-    if (["thinking", "searching", "answering", "listening"].includes(mood)) return;   // meşgulken yalnızca renk değişir
+    if (["thinking", "searching", "answering", "speaking", "listening"].includes(mood)) return;   // meşgulken yalnızca renk değişir
     set("pet", 2000);
     if (color) say.lastChild.textContent += ` (Renk: ${color})`;
   }

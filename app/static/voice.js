@@ -31,6 +31,7 @@ const Voice = (() => {
     if (recorder || starting || Chat.isBusy()) return;
     if (!window.isSecureContext || !navigator.mediaDevices || !window.MediaRecorder)
       return status("Mikrofon için sayfayı https:// adresiyle açmanız gerekir.");
+    if (typeof Speaker !== "undefined") Speaker.stop();
     starting = true; wantStop = false;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });

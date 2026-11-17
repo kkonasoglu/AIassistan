@@ -60,6 +60,7 @@
           <textarea id="chat-input" rows="2" maxlength="4000"
             placeholder="Sorunuzu yazın (Enter: gönder, Shift+Enter: yeni satır)"></textarea>
           <div class="composer-row">
+            <label class="check"><input type="checkbox" id="speak-on" checked> Sesli yanıt</label>
             <label class="check"><input type="checkbox" id="auto-send" checked> Konuşma bitince otomatik gönder</label>
             <span class="spacer"></span>
             <button type="button" id="mic-btn" class="mic" title="Basılı tutun ve konuşun (F8)">🎙 Basılı tutup konuş (F8)</button>
@@ -73,6 +74,7 @@
 
   <script src="/app.js"></script>
   <script src="/dinyo.js"></script>
+  <script src="/speak.js"></script>
   <script src="/chat.js"></script>
   <script src="/voice.js"></script>
   <script>
@@ -97,6 +99,7 @@
       $("kb-link").classList.toggle("hidden", user.role !== "admin");
       loadStatus();
       Dinyo.init(user);
+      Speaker.init();
       Chat.start();
       let skipped = false; try { skipped = sessionStorage.getItem("dinyo-name-skip") === "1"; } catch (_) {}
       if (!user.display_name && !skipped) {   // ilk girişte bir kez sor; geçilirse kullanıcı adıyla seslenilir

@@ -34,6 +34,11 @@ const Chat = (() => {
     const body = el("div", { class: "text" }, text || "");
     const box = el("div", { class: "cards" });
     b.append(body, box);
+    if (role === "assistant" && typeof Speaker !== "undefined") {   // 🔊: bu cevabı sesli oku / durdur
+      const sp = el("button", { type: "button", class: "speak-btn", title: "Sesli oku" }, "🔊");
+      sp.addEventListener("click", () => Speaker.toggle(b, sp));
+      b.append(sp);
+    }
     for (const c of cards || []) box.append(card(c));
     $("messages").append(b);
     scrollDown();
@@ -115,6 +120,7 @@ const Chat = (() => {
     } catch (e) { return say($("chat-status"), e.message); }
     if ($("messages").querySelector(".welcome")) $("messages").replaceChildren();
 
+    if (typeof Speaker !== "undefined") Speaker.stop();   // yeni soru: eski okuma kesilir
     bubble("user", text);
     const answer = bubble("assistant", "");
     answer.node.classList.add("pending");
@@ -182,6 +188,8 @@ const Chat = (() => {
         else if (/bulamad|boş|aramamı ister/i.test(reply)) Dinyo.set("confused", 5000);
         else Dinyo.set("idle");
       }
+      if (!failed && typeof Speaker !== "undefined" && Speaker.enabled() && document.body.contains(answer.node))
+        Speaker.speak(Speaker.textOf(answer.node), answer.node.querySelector(".speak-btn"));   // sesli yanıt
       refreshList();
     }
   }

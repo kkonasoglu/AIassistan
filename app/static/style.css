@@ -188,7 +188,7 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
 @keyframes scan { 0%, 100% { transform: translateX(-9px); opacity: .55; } 50% { transform: translateX(9px); opacity: 1; } }
 
 /* cevap veriyor: konuşur gibi ritimle atar (eşzamanlı büyüyüp küçülür) */
-.dinyo[data-mood="answering"] .eye { animation: talk .42s ease-in-out infinite alternate; }
+.dinyo[data-mood="answering"] .eye, .dinyo[data-mood="speaking"] .eye { animation: talk .42s ease-in-out infinite alternate; }
 @keyframes talk { from { scale: 1; } to { scale: 1.2 1.05; } }
 
 /* buldu: gülen gözler ^ ^ (yuvarlağın üst yarısı), yeşilimsi parlama */
@@ -223,3 +223,12 @@ button.side-toggle { padding: 4px 10px; font-size: 18px; line-height: 1.2; }
 @media (max-width: 760px) {
   .chat-layout.side-collapsed { grid-template-columns: 1fr; grid-template-rows: 0 1fr; }
 }
+
+/* ---- Sesli yanıt ---- */
+.bubble { position: relative; }
+.speak-btn { position: absolute; top: 6px; right: 8px; padding: 0 6px; border: none; background: none; font-size: 15px; line-height: 1.6;
+             opacity: .45; border-radius: 6px; }
+.speak-btn:hover { opacity: 1; background: var(--soft); }
+.speak-btn.on { opacity: 1; color: var(--accent); animation: pulse 1s ease-in-out infinite; }
+.bubble.pending .speak-btn, .bubble.assistant .text:empty ~ .cards:empty ~ .speak-btn { display: none; }
+.bubble.assistant { padding-right: 36px; }

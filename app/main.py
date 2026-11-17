@@ -9,7 +9,7 @@ from app.api import admin, auth, chat, health, voice
 from app.api.deps import csrf_guard
 from app.core.config import settings
 from app.db.database import init_db
-from app.services import stt
+from app.services import stt, tts
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -19,6 +19,8 @@ async def lifespan(app: FastAPI):
     init_db()  # tablolar yoksa oluşturur
     if settings.stt_preload:
         stt.preload()  # konuşma modelini arka planda yükle
+    if settings.tts_enabled and settings.tts_preload:
+        tts.preload()  # ses modelini arka planda yükle
     yield
 
 

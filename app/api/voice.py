@@ -8,11 +8,12 @@ import asyncio
 import os
 import tempfile
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from pydantic import BaseModel
 
 from app.api.deps import current_user
 from app.core.config import settings
-from app.services import llm_queue, stt
+from app.services import llm_queue, stt, tts
 from app.services.users import User
 
 router = APIRouter(prefix="/voice")
@@ -56,3 +57,28 @@ async def transcribe(request: Request, user: User = Depends(current_user)):
         except OSError:
             pass
     return {"text": text}
+
+
+class SpeakBody(BaseModel):
+    text: str
+
+
+@router.post("/speak")
+async def speak(body: SpeakBody, user: User = Depends(current_user)):
+    """Metni Türkçe erkek sesiyle okur: WAV döner. Metin sunucudan dışarı çıkmaz, kaydedilmez."""
+    if not settings.tts_enabled:
+        raise HTTPException(404, "Sesli yanıt kapalı.")
+    if len(body.text) > settings.max_message_chars * 4:
+        raise HTTPException(413, "Metin çok uzun.")
+    loop = asyncio.get_running_loop()
+    try:
+        async with llm_queue.slot():           # sentez de CPU kullanır: sıraya gir
+            audio = await loop.run_in_executor(None, tts.synthesize, body.text)
+    except tts.ModelUnavailable:
+        raise HTTPException(503, "Ses modeli yüklenemedi. İlk kurulumda modelin indirilmesi "
+                                 "için sunucunun internete bağlı olması gerekir.")
+    except Exception:
+        raise HTTPException(500, "Metin sese çevrilemedi.")
+    if not audio:
+        return Response(status_code=204)       # okunacak bir şey yok
+    return Response(audio, media_type="audio/wav", headers={"Cache-Control": "no-store"})
