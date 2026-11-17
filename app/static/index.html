@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Ofis Asistanı</title>
+  <title>Teknik Destek Asistanı Dinyo</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -22,7 +22,7 @@
 
   <!-- Giriş -->
   <div id="login" class="card narrow hidden">
-    <h2>Ofis Asistanı</h2>
+    <h2>Teknik Destek Asistanı Dinyo</h2>
     <form id="login-form">
       <label>Kullanıcı adı</label><input id="l-user" autocomplete="username" required autofocus>
       <label>Şifre</label><input id="l-pw" type="password" autocomplete="current-password" required>
@@ -34,7 +34,8 @@
   <!-- Ana ekran: sohbet -->
   <div id="home" class="hidden app-shell">
     <header>
-      <h1>Ofis Asistanı</h1>
+      <button id="side-toggle" class="side-toggle" type="button" title="Sohbet listesini aç/kapat" aria-label="Sohbet listesini aç/kapat" aria-expanded="true">☰</button>
+      <h1>Teknik Destek Asistanı Dinyo</h1>
       <span id="who" class="muted"></span>
       <a id="kb-link" href="/knowledge.html" class="hidden"><button>Bilgi bankası</button></a>
       <a id="admin-link" href="/admin.html" class="hidden"><button>Kullanıcılar</button></a>
@@ -51,6 +52,7 @@
         </details>
       </aside>
       <section class="chat-main">
+        <div id="dinyo" aria-live="polite"></div>
         <div id="messages" class="messages"></div>
         <div id="chat-status" class="msg"></div>
         <form id="chat-form" class="composer">
@@ -69,6 +71,7 @@
   </div>
 
   <script src="/app.js"></script>
+  <script src="/dinyo.js"></script>
   <script src="/chat.js"></script>
   <script src="/voice.js"></script>
   <script>
@@ -82,6 +85,7 @@
       $("admin-link").classList.toggle("hidden", user.role !== "admin");
       $("kb-link").classList.toggle("hidden", user.role !== "admin");
       loadStatus();
+      Dinyo.init();
       Chat.start();
       Voice.init();
     }
@@ -123,6 +127,15 @@
     });
     $("logout-btn").addEventListener("click", logout);
     $("pw-btn").addEventListener("click", openPasswordDialog);
+    // Sol panel (sohbet listesi) açılır/kapanır; tercih bu tarayıcıda hatırlanır
+    function setSide(open) {
+      document.querySelector(".chat-layout").classList.toggle("side-collapsed", !open);
+      $("side-toggle").setAttribute("aria-expanded", open ? "true" : "false");
+      try { localStorage.setItem("dinyo-side", open ? "open" : "closed"); } catch (_) {}
+    }
+    $("side-toggle").addEventListener("click", () =>
+      setSide(document.querySelector(".chat-layout").classList.contains("side-collapsed")));
+    try { if (localStorage.getItem("dinyo-side") === "closed") setSide(false); } catch (_) {}
     init();
   </script>
 </body>

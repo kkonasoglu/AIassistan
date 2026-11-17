@@ -1,24 +1,15 @@
-/* Ofis Asistanı arayüzü: sade, sıkı, kurumsal. Açık/koyu tema sistem ayarını izler.
+/* Teknik Destek Asistanı Dinyo arayüzü: siyah tema (tek tema).
    Sınıf adları JS ile ortaktır: değiştirirken dikkat. */
 :root {
-  --bg: #f1f3f7; --card: #ffffff; --soft: #f5f7fa; --text: #1c2330; --muted: #667085; --line: #dfe3ea;
-  --accent: #2563eb; --accent-hover: #1d4fd0; --accent-soft: #e8f0fe; --accent-text: #fff;
-  --danger: #d92d20; --danger-soft: #fdecea; --ok: #12853f; --ok-soft: #e6f6ec; --warn: #d97706;
-  --shadow: 0 1px 2px rgba(16, 24, 40, .06);
-  --shadow-lg: 0 12px 36px rgba(16, 24, 40, .16);
+  --bg: #000000; --card: #0b0b0e; --soft: #15151b; --text: #ececf1; --muted: #9a9aa8; --line: #26262e;
+  --accent: #38bdf8; --accent-hover: #7dd3fc; --accent-soft: #0d2a38; --accent-text: #00121a;
+  --danger: #ff7a70; --danger-soft: #3a1c1f; --ok: #4ade80; --ok-soft: #14301f; --warn: #fbbf24;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .6);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, .8);
   --radius: 10px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #11151c; --card: #1a202b; --soft: #202734; --text: #e6e9ef; --muted: #98a2b3; --line: #2b3342;
-    --accent: #4c8dff; --accent-hover: #6aa0ff; --accent-soft: #1f2d4a; --accent-text: #0a1020;
-    --danger: #ff7a70; --danger-soft: #3a1c1f; --ok: #4ade80; --ok-soft: #14301f; --warn: #fbbf24;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .35);
-    --shadow-lg: 0 12px 36px rgba(0, 0, 0, .55);
-  }
-}
 * { box-sizing: border-box; }
-html { color-scheme: light dark; }
+html { color-scheme: dark; }
 body { margin: 0; background: var(--bg); color: var(--text);
        font: 14.5px/1.5 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
        -webkit-font-smoothing: antialiased; }
@@ -29,8 +20,7 @@ a { color: var(--accent); }
 header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px;
          padding: 8px 16px; background: var(--card); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 header h1 { font-size: 16px; font-weight: 650; margin: 0; flex: 1; display: flex; align-items: center; gap: 9px; }
-header h1::before { content: "OA"; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px;
-                    background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .02em; }
+header h1::before { content: ""; width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--line); display: block; background: radial-gradient(circle at 33% 50%, #fff 0 3.2px, transparent 3.7px), radial-gradient(circle at 67% 50%, #fff 0 3.2px, transparent 3.7px), #000; }
 header a { text-decoration: none; }
 header button { padding: 5px 12px; font-size: 13.5px; }
 main { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
@@ -40,8 +30,7 @@ main { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
         padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
 .card.narrow { max-width: 380px; margin: 12vh auto 0; padding: 28px; box-shadow: var(--shadow-lg); }
 .card.narrow h2 { font-size: 20px; text-align: center; margin-bottom: 14px; }
-.card.narrow h2::before { content: "OA"; display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 12px;
-                          border-radius: 11px; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; }
+.card.narrow h2::before { content: ""; width: 52px; height: 52px; border-radius: 14px; border: 1px solid var(--line); display: block; background: radial-gradient(circle at 33% 50%, #fff 0 4.2px, transparent 4.7px), radial-gradient(circle at 67% 50%, #fff 0 4.2px, transparent 4.7px), #000; margin: 0 auto 12px; }
 .card.narrow button.primary { width: 100%; padding: 9px; }
 h2 { margin: 0 0 12px; font-size: 17px; font-weight: 650; }
 label { display: block; margin: 11px 0 4px; font-size: 13px; font-weight: 500; color: var(--muted); }
@@ -52,7 +41,7 @@ input:focus, select:focus { outline: none; border-color: var(--accent);
 button { padding: 7px 14px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
          background: var(--card); color: var(--text); font: inherit; font-weight: 500; transition: background .12s, border-color .12s; }
 button:hover { background: var(--soft); border-color: color-mix(in srgb, var(--line) 60%, var(--muted)); }
-button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 button.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 button.danger { color: var(--danger); }
 button.danger:hover { background: var(--danger-soft); }
@@ -112,7 +101,7 @@ button.icon:hover { color: var(--danger); background: var(--danger-soft); }
 /* ---- Mesaj balonları ---- */
 .bubble { max-width: min(820px, 88%); padding: 9px 13px; border-radius: 12px; border: 1px solid var(--line);
           background: var(--card); box-shadow: var(--shadow); animation: rise .2s ease both; border-top-left-radius: 3px; }
-.bubble.user { align-self: flex-end; border-color: var(--accent); color: #fff; background: var(--accent);
+.bubble.user { align-self: flex-end; border-color: var(--accent); color: var(--accent-text); background: var(--accent);
                border-top-left-radius: 12px; border-top-right-radius: 3px; box-shadow: none; }
 .bubble .text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .bubble .text:empty { display: none; }
@@ -167,3 +156,53 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
   button.icon { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ================= Siyah tema + Dinyo ================= */
+.dinyo { display: flex; align-items: center; gap: 16px; margin: 12px 0 0; padding: 10px 18px;
+         background: var(--face); border: 1px solid var(--line); border-radius: 16px; flex: none; }
+.dinyo .face { display: flex; gap: 14px; padding: 6px 4px; }
+.dinyo .eye { position: relative; width: 44px; height: 56px; border-radius: 50%; overflow: hidden; background: #f3f6ff;
+              box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+              transition: transform .14s ease, box-shadow .3s; }
+.dinyo .eye.blink { transform: scaleY(.08); }
+.dinyo .pupil { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%;
+                background: radial-gradient(circle at 32% 30%, #fff 0 2.5px, transparent 3px), #0a0b12;
+                transition: transform .18s ease-out, width .2s, height .2s, margin .2s; }
+.dinyo .lid, .dinyo .cheek { position: absolute; left: -20%; width: 140%; background: var(--face);
+                             transition: height .25s ease, transform .25s ease; }
+.dinyo .lid { top: -2px; height: 0; transform-origin: 50% 0; }
+.dinyo .cheek { bottom: -2px; height: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.dinyo .say { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.dinyo .say b { font-size: 15px; }
+.dinyo .say span { color: var(--muted); font-size: 13.5px; }
+
+/* durumlar */
+.dinyo[data-mood="happy"] .cheek { height: 62%; }
+.dinyo[data-mood="happy"] .eye { box-shadow: 0 0 22px color-mix(in srgb, var(--ok) 55%, transparent); }
+.dinyo[data-mood="sad"] .lid { height: 46%; }
+.dinyo[data-mood="sad"] .left .lid { transform: rotate(-20deg); }
+.dinyo[data-mood="sad"] .right .lid { transform: rotate(20deg); }
+.dinyo[data-mood="sad"] .eye { box-shadow: 0 0 20px color-mix(in srgb, var(--danger) 45%, transparent); }
+.dinyo[data-mood="confused"] .left .lid { height: 34%; }
+.dinyo[data-mood="confused"] .right .eye, .dinyo[data-mood="confused"] .right { transform: translateY(-3px); }
+.dinyo[data-mood="confused"] .pupil { width: 17px; height: 17px; margin: -8px 0 0 -8px; }
+.dinyo[data-mood="listening"] .eye { transform: scale(1.12); box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 70%, transparent); }
+.dinyo[data-mood="listening"] .pupil { width: 28px; height: 28px; margin: -14px 0 0 -14px; }
+.dinyo[data-mood="typing"] .lid { height: 14%; }
+.dinyo[data-mood="thinking"] .lid, .dinyo[data-mood="searching"] .lid { height: 22%; }
+.dinyo[data-mood="thinking"] .pupil, .dinyo[data-mood="searching"] .pupil { animation: ponder 3.2s ease-in-out infinite; }
+.dinyo[data-mood="searching"] .pupil { animation-duration: 1.4s; }
+@keyframes ponder { 0%, 100% { transform: translate(-8px, -9px); } 33% { transform: translate(9px, -10px); } 66% { transform: translate(2px, -3px); } }
+
+/* siyah tema */
+:root { --face: #050507; }
+
+/* ---- Sol panel açılır/kapanır ---- */
+button.side-toggle { padding: 4px 10px; font-size: 18px; line-height: 1.2; }
+.chat-layout { transition: grid-template-columns .2s ease; }
+.chat-layout.side-collapsed { grid-template-columns: 0 1fr; }
+.chat-layout.side-collapsed .sidebar { padding: 0; border-right: none; overflow: hidden; visibility: hidden; }
+@media (max-width: 760px) {
+  .chat-layout.side-collapsed { grid-template-columns: 1fr; grid-template-rows: 0 1fr; }
+}
+.dinyo[data-mood="happy"] .pupil { transform: translate(0, -7px) !important; }

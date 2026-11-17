@@ -50,6 +50,7 @@ const Voice = (() => {
     recorder.start();
     t0 = Date.now();
     setUi(true);
+    if (window.Dinyo) Dinyo.set("listening");
     status("🎙 Dinliyorum… bırakınca yazıya çevrilir.", "ok");
     timer = setTimeout(stop, MAX_MS);
   }
@@ -66,6 +67,7 @@ const Voice = (() => {
     recorder = null;
     release();
     setUi(false);
+    if (window.Dinyo) Dinyo.set(ms < MIN_MS ? "idle" : "thinking");
     if (ms < MIN_MS) return status("Çok kısa. Konuşurken tuşu basılı tutun.");
     const blob = new Blob(chunks, { type });
     chunks = [];
@@ -79,12 +81,14 @@ const Voice = (() => {
       if (res.status === 401) return location.reload();
       if (!res.ok) throw new Error((data && typeof data.detail === "string" && data.detail) || "Ses yazıya çevrilemedi.");
       const text = (data.text || "").trim();
-      if (!text) return status("Ses anlaşılamadı. Biraz daha yüksek ve yakın konuşup tekrar deneyin.");
+      if (!text) { if (window.Dinyo) Dinyo.set("confused", 4000); return status("Ses anlaşılamadı. Biraz daha yüksek ve yakın konuşup tekrar deneyin."); }
       const input = $("chat-input");
       input.value = input.value.trim() ? input.value.trim() + " " + text : text;
       status("");
+      if (!$("auto-send").checked && window.Dinyo) Dinyo.set("idle");
       if ($("auto-send").checked) Chat.send(); else input.focus();
     } catch (e) {
+      if (window.Dinyo) Dinyo.set("sad", 4000);
       status(e.message);
     }
   }

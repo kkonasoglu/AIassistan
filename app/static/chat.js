@@ -49,7 +49,7 @@ const Chat = (() => {
       grid.append(el("button", { type: "button", class: "tip", onclick: () => send(q) },
         el("b", {}, q), el("span", {}, d)));
     $("messages").replaceChildren(el("div", { class: "welcome" },
-      el("h3", {}, "Size nasıl yardımcı olabilirim?"),
+      el("h3", {}, "Merhaba, ben Dinyo. Size nasıl yardımcı olabilirim?"),
       el("p", { class: "muted" }, "Sorunu ya da hata kodunu yazın; kayıtlı çözümü hemen getiririm. Konuşmak için F8'e basılı tutun."),
       grid));
   }
@@ -120,8 +120,9 @@ const Chat = (() => {
     answer.node.classList.add("pending");
     say($("chat-status"), "Bilgi bankasında aranıyor…", "ok");
     setBusy(true);
+    if (window.Dinyo) Dinyo.set("thinking");
     controller = new AbortController();
-    let gotCards = false;
+    let gotCards = false, failed = false;
 
     try {
       const res = await fetch(`/api/chat/conversations/${convId}/stream`, {
@@ -153,6 +154,7 @@ const Chat = (() => {
             scrollDown();
           } else if (ev.type === "status") {
             say($("chat-status"), ev.text, "ok");
+            if (window.Dinyo && /internet/i.test(ev.text)) Dinyo.set("searching");
           } else if (ev.type === "queue") {
             say($("chat-status"), `Sırada bekleniyor (sıranız: ${ev.position})…`, "ok");
           } else if (ev.type === "token") {
@@ -165,12 +167,19 @@ const Chat = (() => {
       say($("chat-status"), "");
     } catch (e) {
       if (e.name === "AbortError") say($("chat-status"), "Durduruldu.", "ok");
-      else say($("chat-status"), e.message);
+      else { failed = true; say($("chat-status"), e.message); }
     } finally {
       answer.node.classList.remove("pending");
       if (!answer.body.textContent && !answer.box.children.length) answer.node.remove();
       controller = null;
       setBusy(false);
+      if (window.Dinyo) {      // karakterin tepkisi: buldu / bulamadı / hata
+        const reply = answer.body.textContent || "";
+        if (failed) Dinyo.set("sad", 5000);
+        else if (gotCards) Dinyo.set("happy", 4500);
+        else if (/bulamad|boş|aramamı ister/i.test(reply)) Dinyo.set("confused", 5000);
+        else Dinyo.set("idle");
+      }
       refreshList();
     }
   }

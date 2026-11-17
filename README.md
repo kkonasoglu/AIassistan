@@ -1,4 +1,4 @@
-﻿# Ofis Asistanı
+﻿# Teknik Destek Asistanı Dinyo
 
 Ofis içi yerel ağda (LAN) çalışan, tamamen offline, bilgi bankalı yapay zeka asistanı.
 Python + FastAPI + sade HTML/JS arayüz. Dışarıya veri göndermez.
@@ -13,6 +13,9 @@ Python + FastAPI + sade HTML/JS arayüz. Dışarıya veri göndermez.
    Sunucunun IP'si değişirse: `.venv\Scripts\python.exe -m scripts.make_cert --force`
 
 ## Nasıl çalışır
+- **Dinyo (karakter):** sohbetin üstünde iki göz var; fareyi izler, göz kırpar, yazarken size bakar, düşünürken etrafa bakar, 
+  cevabı bulunca gülümser, bulamayınca şaşırır, mikrofon açıkken gözleri büyür. Arayüz siyah temadır. Sol üstteki ☰ düğmesi 
+  sohbet listesini açıp kapatır (tercih tarayıcıda hatırlanır). Karakter kodu: `app/static/dinyo.js`.
 - Bilgi, sistemin **kendi veritabanında** durur (`data/vectorstore`, ChromaDB). Klasöre dosya konmaz;
   kayıtları yalnızca adminler ekler/düzenler/siler: sohbet ekranında **Bilgi bankası** düğmesi
   (`/knowledge.html`). Silme gizlemedir, "Silinenleri göster" ile geri alınır. **JSON dışa aktar** yedek
