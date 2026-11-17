@@ -8,7 +8,11 @@ const Dinyo = (() => {
     thinking: "Düşünüyorum {n}…", searching: "İnternette bakıyorum {n}…", answering: "Cevaplıyorum {n}…",
     happy: "Buldum {n}!", confused: "Hmm {n}, bunu bulamadım…", sad: "Bir sorun oldu {n}…",
     listening: "Sizi dinliyorum {n}…", speaking: "Konuşuyorum {n}…", pet: "Hihi, gıdıklandım {n}!",
+    sleep: "Zzz… (uyuyorum, dokunun uyanırım)", wake: "Ooo, uyandım {n}!",
   };
+  const SLEEP_MS = 5 * 60 * 1000; // bu kadar süre hiçbir şey yapılmazsa Dinyo uyur
+  const BUSY = ["thinking", "searching", "answering", "speaking", "listening", "typing"];
+  let lastAct = Date.now();
   const REACH = 14;               // yuvarlakların bakış yönünde kayabileceği en fazla piksel
   let root, face, say, eyes = [], mood = "idle", back = null, lastMove = 0, typingTimer = null, who = "";
   let canvas;
@@ -48,6 +52,7 @@ const Dinyo = (() => {
 
   function set(next, ms) {
     if (!root) return;
+    if (next !== "sleep") lastAct = Date.now();   // sohbet tepkileri (düşünme, cevap...) de uykuyu geciktirir
     clearTimeout(back);
     mood = next;
     root.dataset.mood = next === "hello" ? "happy" : next;
@@ -83,14 +88,29 @@ const Dinyo = (() => {
     typingTimer = setTimeout(() => mood === "typing" && set("idle"), 2000);
   }
 
+  // Uyku: 5 dk etkileşim yoksa gözler kapanır; fare/klavye/dokunma ile uyanır
+  function activity() {
+    lastAct = Date.now();
+    if (mood === "sleep") set("wake", 2500);
+  }
+
+  function napCheck() {
+    if (root && mood !== "sleep" && !BUSY.includes(mood) && Date.now() - lastAct > SLEEP_MS
+        && !(typeof Speaker !== "undefined" && Speaker.isPlaying())) {
+      set("sleep");
+      look(0, 0);
+    }
+    setTimeout(napCheck, 10000);
+  }
+
   function track(ev) {
     lastMove = Date.now();
-    if (!root || ["thinking", "searching", "answering", "speaking", "typing"].includes(mood)) return;
+    if (!root || mood === "sleep" || ["thinking", "searching", "answering", "speaking", "typing"].includes(mood)) return;
     lookAt(ev.clientX, ev.clientY, false);
   }
 
   function blink() {
-    if (root && !["happy", "sad"].includes(root.dataset.mood)) {
+    if (root && !["happy", "sad", "sleep"].includes(root.dataset.mood)) {
       for (const e of eyes) e.classList.add("blink");
       setTimeout(() => eyes.forEach(e => e.classList.remove("blink")), 140);
     }
@@ -119,6 +139,9 @@ const Dinyo = (() => {
     face.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pet(); } });
     set("hello", 3500);
     document.addEventListener("mousemove", track);
+    for (const t of ["mousemove", "mousedown", "keydown", "touchstart", "wheel", "scroll"])
+      document.addEventListener(t, activity, { passive: true, capture: true });
+    napCheck();
     const input = document.getElementById("chat-input");
     if (input) for (const t of ["input", "keyup", "click", "focus"])
       input.addEventListener(t, () => { if (t === "input" || input.value) onTyping(input); });

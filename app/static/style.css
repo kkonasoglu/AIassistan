@@ -212,6 +212,12 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
 .dinyo[data-mood="listening"] .eye { scale: 1.18; animation: listen 1s ease-in-out infinite; }
 @keyframes listen { 50% { scale: 1.3; } }
 
+/* uyku: gözler ince çizgi, sönük, yavaş nefes alır; uyanınca kısa bir sıçrama */
+.dinyo[data-mood="sleep"] .dot { transform: scaleY(.08); opacity: .45; }
+.dinyo[data-mood="sleep"] .eye { animation: breathe 3.6s ease-in-out infinite; filter: none; }
+@keyframes breathe { 50% { scale: .9; opacity: .7; } }
+.dinyo[data-mood="wake"] .eye { animation: hop .5s ease-out 1; }
+
 /* siyah tema */
 :root { --face: #050507; }
 
