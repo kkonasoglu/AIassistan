@@ -25,7 +25,7 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 - Cevap davranışı: günlük dili anlasın; alakalı kayıt varsa **anında kart olarak birebir** göstersin; kayıt yoksa uydurmasın, "kayıt bulamadım" desin (bu durumda model hiç çağrılmaz).
 - Kullanıcılar ve sohbet geçmişi SQLite'ta; her kullanıcının sohbeti kendine özel.
 
-## 4. Yapılanlar (hepsi çalışır, 160 test geçti)
+## 4. Yapılanlar (hepsi çalışır, 169 test geçti)
 1. Klasör yapısı, kurulum (`setup.ps1`), HTTPS sertifikası.
 2. Web uygulaması: giriş, roller, kullanıcı yönetimi (admin paneli), sohbet + akışlı cevap, sohbet geçmişi, LLM kuyruğu.
 3. RAG: hata kodu birebir eşleşme + anlamsal arama, eşikler `max_distance=0.45`, `source_margin=0.08`.
@@ -52,7 +52,7 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 4. Eski verileri taşımak için eski PC'deki `data/` klasörünü kopyala (kullanıcılar, sohbetler, bilgi bankası). IP değiştiyse: `.venv\Scripts\python.exe -m scripts.make_cert --force`.
 5. Diğer PC'ler için güvenlik duvarı kuralı: README'deki `New-NetFirewallRule ...` komutu.
 
-- **Ad: "Teknik Destek Asistanı Dinyo".** Arayüz tek tema: SİYAH (cyan vurgu). Karakter "Dinyo" = `app/static/dinyo.js`: robot, iki neon mavisi yuvarlak (göz/gözbebeği yok). Fareyi ve textarea'daki imleç konumunu izler, göz kırpar; durumlar idle/typing/thinking/searching/answering/happy/confused/sad/listening, `Dinyo.set(durum, ms)` ile chat.js/voice.js tetikler. Kullanıcıya adıyla hitap eder (`Dinyo.init(username)`; sunucuda selamlaşma cevaplarına `intent.personalize` ad ekler). Sol sohbet paneli ☰ ile açılır/kapanır (localStorage `dinyo-side`). Klasör/bat dosyası adları ("Ofis Asistanı.bat") bilerek değiştirilmedi. Sohbet tüm ekranı kullanır. "Bilgi bankasından cevapla" kutusu kaldırıldı: bilgi bankası her zaman kullanılır (sunucudaki `use_kb=false` serbest sohbet yolu testler için duruyor, arayüz kullanmıyor).
+- **Ad: "Teknik Destek Asistanı Dinyo".** Arayüz tek tema: SİYAH (cyan vurgu). Karakter "Dinyo" = `app/static/dinyo.js`: robot, iki neon mavisi yuvarlak (göz/gözbebeği yok). Fareyi ve textarea'daki imleç konumunu izler, göz kırpar; durumlar idle/typing/thinking/searching/answering/happy/confused/sad/listening, `Dinyo.set(durum, ms)` ile chat.js/voice.js tetikler. Kullanıcıya GERÇEK adıyla hitap eder: `users.display_name` sütunu (eski veritabanına otomatik eklenir; `User.call_name` = görünen adın ilk sözcüğü, yoksa kullanıcı adı); kurulumda, ilk girişte (pencere, oturumda bir kez), sağ üst addan ya da admin panelinden girilir; sunucuda selamlaşma cevaplarına `intent.personalize` ad ekler. Gözlere tıklama = mutlu kısılma + tema rengi değişimi (`Theme` in app.js, localStorage `dinyo-color`). DİKKAT: `const Dinyo/Theme` pencerede `window.Dinyo` olarak GÖRÜNMEZ; varlık kontrolü `typeof Dinyo !== "undefined"` ile yapılır (`window.Dinyo` yazılırsa tepkiler sessizce çalışmaz; bu hata yaşandı). Sol sohbet paneli ☰ ile açılır/kapanır (localStorage `dinyo-side`). Klasör/bat dosyası adları ("Ofis Asistanı.bat") bilerek değiştirilmedi. Sohbet tüm ekranı kullanır. "Bilgi bankasından cevapla" kutusu kaldırıldı: bilgi bankası her zaman kullanılır (sunucudaki `use_kb=false` serbest sohbet yolu testler için duruyor, arayüz kullanmıyor).
 
 ## 8. Teknik tuzaklar
 - Kodda değişiklik yapınca çalışan sunucu yeni kodu almaz: kapatıp `Ofis Asistanı.bat` ile yeniden aç ("yeni özellik çalışmıyor" şikâyetinin ilk nedeni budur). (tekrar düşülmesin)

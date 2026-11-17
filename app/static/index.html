@@ -13,6 +13,7 @@
     <p class="muted">Yönetici (admin) hesabını oluşturun. Bu şifreyi unutmayın; sıfırlayabilecek başka bir admin olmayabilir.</p>
     <form id="setup-form">
       <label>Kullanıcı adı</label><input id="s-user" autocomplete="username" required>
+      <label>Adınız (Dinyo size bu adla seslenir)</label><input id="s-name" autocomplete="name" maxlength="40" placeholder="Örn. Kerem">
       <label>Şifre (en az 6 karakter)</label><input id="s-pw" type="password" autocomplete="new-password" required>
       <label>Şifre (tekrar)</label><input id="s-pw2" type="password" autocomplete="new-password" required>
       <div id="s-msg" class="msg"></div>
@@ -78,15 +79,30 @@
     const $ = id => document.getElementById(id);
     const show = id => ["setup", "login", "home"].forEach(x => $(x).classList.toggle("hidden", x !== id));
 
+    function showWho(user) {
+      $("who").textContent = (user.display_name || user.username) + " ";
+      $("who").append(el("span", { class: "badge " + (user.role === "admin" ? "admin" : "") }, user.role));
+    }
+    function renamed(user, fresh) {   // ad kaydedildi: üst çubuk, Dinyo ve karşılama güncellensin
+      Object.assign(user, fresh); showWho(user); Dinyo.rename(fresh); Chat.refreshWelcome();
+    }
+
     async function enter(user) {
       show("home");
-      $("who").textContent = user.username + " ";
-      $("who").append(el("span", { class: "badge " + (user.role === "admin" ? "admin" : "") }, user.role));
+      showWho(user);
+      $("who").title = "Adınızı değiştirmek için tıklayın";
+      $("who").style.cursor = "pointer";
+      $("who").onclick = () => openNameDialog(user.display_name, u => renamed(user, u));
       $("admin-link").classList.toggle("hidden", user.role !== "admin");
       $("kb-link").classList.toggle("hidden", user.role !== "admin");
       loadStatus();
-      Dinyo.init(user.username);
+      Dinyo.init(user);
       Chat.start();
+      let skipped = false; try { skipped = sessionStorage.getItem("dinyo-name-skip") === "1"; } catch (_) {}
+      if (!user.display_name && !skipped) {   // ilk girişte bir kez sor; geçilirse kullanıcı adıyla seslenilir
+        try { sessionStorage.setItem("dinyo-name-skip", "1"); } catch (_) {}
+        openNameDialog("", u => renamed(user, u));
+      }
       Voice.init();
     }
 
@@ -117,7 +133,7 @@
     $("setup-form").addEventListener("submit", async ev => {
       ev.preventDefault();
       if ($("s-pw").value !== $("s-pw2").value) return say($("s-msg"), "Şifreler aynı değil.");
-      try { enter(await api("/api/auth/setup", "POST", { username: $("s-user").value, password: $("s-pw").value })); }
+      try { enter(await api("/api/auth/setup", "POST", { username: $("s-user").value, password: $("s-pw").value, display_name: $("s-name").value })); }
       catch (e) { say($("s-msg"), e.message); }
     });
     $("login-form").addEventListener("submit", async ev => {

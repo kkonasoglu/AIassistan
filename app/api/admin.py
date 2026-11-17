@@ -18,6 +18,11 @@ class NewUser(BaseModel):
     username: str
     password: str
     role: str = "user"
+    display_name: str = ""
+
+
+class NameBody(BaseModel):
+    name: str
 
 
 class RoleBody(BaseModel):
@@ -54,7 +59,15 @@ def list_users(admin: User = Depends(require_admin)):
 @router.post("/users")
 @map_errors
 def create_user(body: NewUser, admin: User = Depends(require_admin)):
-    return user_json(users.create_user(body.username, body.password, body.role, admin.id))
+    return user_json(users.create_user(body.username, body.password, body.role, admin.id,
+                                           display_name=body.display_name))
+
+
+@router.patch("/users/{user_id}/display-name")
+@map_errors
+def set_display_name(user_id: int, body: NameBody, admin: User = Depends(require_admin)):
+    users.set_display_name(admin.id, user_id, body.name)
+    return {"ok": True}
 
 
 @router.patch("/users/{user_id}/role")

@@ -17,6 +17,7 @@ from app.db.database import transaction
 
 ROLES = ("admin", "user")
 MIN_PASSWORD_LEN = 6
+MAX_NAME_LEN = 40
 MAX_FAILS = 5
 LOCK_SECONDS = 30
 
@@ -42,6 +43,14 @@ class User:
     username: str
     role: str
     is_active: bool
+    display_name: str = ""
+
+    @property
+    def call_name(self) -> str:
+        """Hitap adı: görünen adın ilk sözcüğü ("Kerem Konasoğlu" -> "Kerem"); yoksa kullanıcı adı."""
+        parts = self.display_name.split()
+        base = parts[0] if parts else self.username
+        return base[:1].replace("i", "İ").replace("ı", "I").upper() + base[1:]
 
     @property
     def is_admin(self) -> bool:
@@ -49,7 +58,7 @@ class User:
 
 
 def _to_user(row) -> User:
-    return User(row["id"], row["username"], row["role"], bool(row["is_active"]))
+    return User(row["id"], row["username"], row["role"], bool(row["is_active"]), row["display_name"])
 
 
 def _validate(username: str, password: str | None = None, role: str | None = None):
@@ -80,10 +89,23 @@ def _get(conn, user_id: int):
     return row
 
 
+def clean_display_name(name: str) -> str:
+    """Görünen ad (hitap için): boşlukları düzenler, çok uzunsa reddeder. Boş olabilir."""
+    name = " ".join((name or "").split())
+    if len(name) > MAX_NAME_LEN:
+        raise ValueError(f"Ad en fazla {MAX_NAME_LEN} karakter olabilir.")
+    return name
+
+
 # ---------- sorgular ----------
 def has_any_user() -> bool:
     with transaction() as conn:
         return conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] > 0
+
+
+def get_user(user_id: int) -> User:
+    with transaction() as conn:
+        return _to_user(_get(conn, user_id))
 
 
 def list_users(actor_id: int) -> list[User]:
@@ -94,11 +116,12 @@ def list_users(actor_id: int) -> list[User]:
 
 # ---------- oluşturma / giriş ----------
 def create_user(username: str, password: str, role: str = "user",
-                actor_id: int | None = None) -> User:
+                actor_id: int | None = None, display_name: str = "") -> User:
     """Kullanıcı oluşturur. Hiç kullanıcı yoksa (ilk kurulum) kimlik gerekmez ve
     hesap otomatik admin olur. Sonrasında yalnızca admin kullanıcı ekleyebilir."""
     username = username.strip()
     _validate(username, password, role)
+    display_name = clean_display_name(display_name)
     with transaction() as conn:
         first = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0
         if first:
@@ -109,8 +132,8 @@ def create_user(username: str, password: str, role: str = "user",
             _require_admin(conn, actor_id)
         try:
             cur = conn.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-                (username, _ph.hash(password), role),
+                "INSERT INTO users (username, password_hash, role, display_name) VALUES (?, ?, ?, ?)",
+                (username, _ph.hash(password), role, display_name),
             )
         except sqlite3.IntegrityError:
             raise ValueError("Bu kullanıcı adı zaten var.") from None
@@ -152,6 +175,17 @@ def change_password(actor_id: int, target_id: int, new_password: str) -> None:
             _require_admin(conn, actor_id)
         _get(conn, target_id)
         conn.execute("UPDATE users SET password_hash=? WHERE id=?", (_ph.hash(new_password), target_id))
+
+
+def set_display_name(actor_id: int, target_id: int, name: str) -> str:
+    """Kişi kendi adını, admin herkesinkini değiştirebilir. Dinyo bu adla hitap eder."""
+    name = clean_display_name(name)
+    with transaction() as conn:
+        if actor_id != target_id:
+            _require_admin(conn, actor_id)
+        _get(conn, target_id)
+        conn.execute("UPDATE users SET display_name=? WHERE id=?", (name, target_id))
+    return name
 
 
 # ---------- rol / durum yönetimi ----------

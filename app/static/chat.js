@@ -49,7 +49,7 @@ const Chat = (() => {
       grid.append(el("button", { type: "button", class: "tip", onclick: () => send(q) },
         el("b", {}, q), el("span", {}, d)));
     $("messages").replaceChildren(el("div", { class: "welcome" },
-      el("h3", {}, `Merhaba${window.Dinyo && Dinyo.name() ? " " + Dinyo.name() : ""}, ben Dinyo. Size nasıl yardımcı olabilirim?`),
+      el("h3", {}, `Merhaba${typeof Dinyo !== "undefined" && Dinyo.name() ? " " + Dinyo.name() : ""}, ben Dinyo. Size nasıl yardımcı olabilirim?`),
       el("p", { class: "muted" }, "Sorunu ya da hata kodunu yazın; kayıtlı çözümü hemen getiririm. Konuşmak için F8'e basılı tutun."),
       grid));
   }
@@ -120,7 +120,7 @@ const Chat = (() => {
     answer.node.classList.add("pending");
     say($("chat-status"), "Bilgi bankasında aranıyor…", "ok");
     setBusy(true);
-    if (window.Dinyo) Dinyo.set("thinking");
+    if (typeof Dinyo !== "undefined") Dinyo.set("thinking");
     controller = new AbortController();
     let gotCards = false, failed = false;
 
@@ -149,18 +149,18 @@ const Chat = (() => {
           const ev = JSON.parse(block.slice(6));
           if (ev.type === "cards") {
             gotCards = true;
-            if (window.Dinyo) Dinyo.set("happy");
+            if (typeof Dinyo !== "undefined") Dinyo.set("happy");
             for (const c of ev.cards) answer.box.append(card(c, true));
             say($("chat-status"), "", "ok");
             scrollDown();
           } else if (ev.type === "status") {
             say($("chat-status"), ev.text, "ok");
-            if (window.Dinyo && /internet/i.test(ev.text)) Dinyo.set("searching");
+            if (typeof Dinyo !== "undefined" && /internet/i.test(ev.text)) Dinyo.set("searching");
           } else if (ev.type === "queue") {
             say($("chat-status"), `Sırada bekleniyor (sıranız: ${ev.position})…`, "ok");
           } else if (ev.type === "token") {
             say($("chat-status"), "");
-            if (window.Dinyo && !gotCards) Dinyo.set("answering");
+            if (typeof Dinyo !== "undefined" && !gotCards) Dinyo.set("answering");
             answer.body.textContent += ev.text;
             scrollDown();
           } else if (ev.type === "error") throw new Error(ev.message);
@@ -175,7 +175,7 @@ const Chat = (() => {
       if (!answer.body.textContent && !answer.box.children.length) answer.node.remove();
       controller = null;
       setBusy(false);
-      if (window.Dinyo) {      // karakterin tepkisi: buldu / bulamadı / hata
+      if (typeof Dinyo !== "undefined") {      // karakterin tepkisi: buldu / bulamadı / hata
         const reply = answer.body.textContent || "";
         if (failed) Dinyo.set("sad", 5000);
         else if (gotCards) Dinyo.set("happy", 4500);
@@ -198,5 +198,7 @@ const Chat = (() => {
     newChat();
   }
 
-  return { start, send, isBusy: () => controller !== null };
+  function refreshWelcome() { if ($("messages").querySelector(".welcome")) showWelcome(); }
+
+  return { start, send, refreshWelcome, isBusy: () => controller !== null };
 })();

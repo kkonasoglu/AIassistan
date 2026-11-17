@@ -19,15 +19,16 @@
       <h2>Kullanıcılar</h2>
       <div id="list-msg" class="msg"></div>
       <table>
-        <thead><tr><th>Kullanıcı</th><th>Rol</th><th>Durum</th><th>İşlemler</th></tr></thead>
+        <thead><tr><th>Kullanıcı</th><th>Adı</th><th>Rol</th><th>Durum</th><th>İşlemler</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
 
     <div class="card">
       <h2>Yeni kullanıcı ekle</h2>
-      <form id="add-form" class="grid">
+      <form id="add-form" class="grid" style="grid-template-columns: 1fr 1fr 1fr 120px auto">
         <div><label>Kullanıcı adı</label><input id="n-user" required autocomplete="off"></div>
+        <div><label>Adı (hitap için)</label><input id="n-name" maxlength="40" autocomplete="off" placeholder="Örn. Ayşe"></div>
         <div><label>Şifre (en az 6)</label><input id="n-pw" type="password" required autocomplete="new-password"></div>
         <div><label>Rol</label>
           <select id="n-role"><option value="user">user</option><option value="admin">admin</option></select></div>
@@ -66,6 +67,10 @@
           el("button", { onclick: () => run(() => api(`/api/admin/users/${u.id}/role`, "PATCH",
             { role: u.role === "admin" ? "user" : "admin" })) }, u.role === "admin" ? "Yetkiyi al" : "Admin yap"),
           el("button", { onclick: () => {
+            const nm = prompt(`"${u.username}" için görünen ad (Dinyo bu adla seslenir):`, u.display_name);
+            if (nm !== null) run(() => api(`/api/admin/users/${u.id}/display-name`, "PATCH", { name: nm }), "Ad güncellendi.");
+          } }, "Adı değiştir"),
+          el("button", { onclick: () => {
             const pw = prompt(`"${u.username}" için yeni şifre (en az 6 karakter):`);
             if (pw) run(() => api(`/api/admin/users/${u.id}/password`, "POST", { password: pw }), "Şifre güncellendi.");
           } }, "Şifre sıfırla"),
@@ -80,6 +85,7 @@
           } }, "Yetkiyi devret"));
         body.append(el("tr", {},
           el("td", {}, u.username + (self ? " (siz)" : "")),
+          el("td", {}, u.display_name || el("span", { class: "muted" }, "—")),
           el("td", {}, el("span", { class: "badge " + (u.role === "admin" ? "admin" : "") }, u.role)),
           el("td", {}, u.is_active ? "Aktif" : el("span", { class: "badge off" }, "Pasif")),
           acts));
@@ -90,7 +96,7 @@
       ev.preventDefault();
       try {
         await api("/api/admin/users", "POST",
-          { username: $("n-user").value, password: $("n-pw").value, role: $("n-role").value });
+          { username: $("n-user").value, display_name: $("n-name").value, password: $("n-pw").value, role: $("n-role").value });
         say($("add-msg"), "Kullanıcı eklendi.", "ok");
         ev.target.reset(); await load();
       } catch (e) { say($("add-msg"), e.message); }

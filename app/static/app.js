@@ -63,3 +63,51 @@ function openPasswordDialog() {
   document.body.append(dlg);
   dlg.showModal();
 }
+
+
+// Tema rengi: gözlere dokununca sıradaki neon renge geçilir; tercih bu tarayıcıda hatırlanır, tüm sayfalarda geçerlidir.
+const Theme = (() => {
+  const COLORS = [   // [ad, ana renk, parlama]
+    ["Mavi", "#19c8ff", "#0aa4ff"], ["Yeşil", "#2ee89a", "#10b36d"], ["Mor", "#b18cff", "#7c4dff"],
+    ["Pembe", "#ff66b3", "#e0388a"], ["Turuncu", "#ffa72b", "#e07b00"], ["Sarı", "#ffe14d", "#d9b400"],
+  ];
+  let i = 0;
+  function apply(n) {
+    i = ((n % COLORS.length) + COLORS.length) % COLORS.length;
+    const [, main, glow] = COLORS[i], root = document.documentElement.style;
+    root.setProperty("--accent", main);
+    root.setProperty("--accent-hover", `color-mix(in srgb, ${main} 75%, #fff)`);
+    root.setProperty("--accent-soft", `color-mix(in srgb, ${main} 16%, #0b0b0e)`);
+    root.setProperty("--neon", main);
+    root.setProperty("--neon-glow", glow);
+    try { localStorage.setItem("dinyo-color", String(i)); } catch (_) {}
+    return COLORS[i][0];
+  }
+  try { apply(parseInt(localStorage.getItem("dinyo-color") || "0", 10) || 0); } catch (_) { apply(0); }
+  return { next: () => apply(i + 1), name: () => COLORS[i][0] };
+})();
+
+// Ad penceresi: Dinyo kullanıcıya bu adla seslenir. Kaydedilince done(kullanıcı) çağrılır.
+function openNameDialog(current, done) {
+  const input = el("input", { maxlength: "40", autocomplete: "name", value: current || "", placeholder: "Örn. Kerem" });
+  const msg = el("div", { class: "msg" });
+  const dlg = el("dialog", {});
+  const save = el("button", { class: "primary", type: "button" }, "Kaydet");
+  const skip = el("button", { type: "button", onclick: () => dlg.close() }, "Şimdilik geç");
+  const submit = async () => {
+    try {
+      const u = await api("/api/auth/display-name", "POST", { name: input.value });
+      dlg.close();
+      done(u);
+    } catch (e) { say(msg, e.message); }
+  };
+  save.addEventListener("click", submit);
+  input.addEventListener("keydown", ev => { if (ev.key === "Enter") { ev.preventDefault(); submit(); } });
+  dlg.append(el("h2", {}, "Size nasıl hitap edeyim?"),
+    el("p", { class: "muted" }, "Dinyo size bu adla seslenecek. İstediğiniz zaman sağ üstteki adınıza tıklayarak değiştirebilirsiniz."),
+    el("label", {}, "Adınız"), input, msg, el("div", { class: "form-actions" }, save, skip));
+  dlg.addEventListener("close", () => dlg.remove());
+  document.body.append(dlg);
+  dlg.showModal();
+  input.focus();
+}

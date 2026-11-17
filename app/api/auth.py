@@ -16,13 +16,26 @@ class Credentials(BaseModel):
     password: str
 
 
+class SetupBody(Credentials):
+    display_name: str = ""
+
+
+class NameBody(BaseModel):
+    name: str
+
+
 class PasswordChange(BaseModel):
     current: str
     new: str
 
 
 def user_json(u: User) -> dict:
-    return {"id": u.id, "username": u.username, "role": u.role, "is_active": u.is_active}
+    return {"id": u.id, "username": u.username, "role": u.role, "is_active": u.is_active,
+            "display_name": u.display_name, "call_name": u.call_name}
+
+
+def current_user_fresh(user_id: int) -> User:
+    return users.get_user(user_id)
 
 
 def _login(response: Response, user: User) -> None:
@@ -64,10 +77,10 @@ def state(request: Request):
 
 @router.post("/setup")
 @map_errors
-def setup(body: Credentials, response: Response):
+def setup(body: SetupBody, response: Response):
     """Yalnızca hiç kullanıcı yokken çalışır; ilk hesap admin olur.
     (Başka biri önce davranırsa create_user yetki hatası verir.)"""
-    user = users.create_user(body.username, body.password)
+    user = users.create_user(body.username, body.password, display_name=body.display_name)
     _login(response, user)
     return user_json(user)
 
@@ -92,6 +105,13 @@ def logout(request: Request, response: Response):
 @router.get("/me")
 def me(user: User = Depends(current_user)):
     return user_json(user)
+
+
+@router.post("/display-name")
+@map_errors
+def set_own_name(body: NameBody, user: User = Depends(current_user)):
+    users.set_display_name(user.id, user.id, body.name)
+    return user_json(current_user_fresh(user.id))
 
 
 @router.post("/password")

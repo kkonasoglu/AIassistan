@@ -13,7 +13,7 @@ Python + FastAPI + sade HTML/JS arayüz. Dışarıya veri göndermez.
    Sunucunun IP'si değişirse: `.venv\Scripts\python.exe -m scripts.make_cert --force`
 
 ## Nasıl çalışır
-- **Dinyo (karakter):** sohbetin üstünde robot gibi iki neon mavisi yuvarlak var. Fareyi ve **yazdığınız yeri** izler, göz kırpar; düşünürken sağa sola tarar, cevap verirken ritimle atar, çözümü bulunca gülen kemer şekline gelir, bulamayınca biri küçülür, hata olunca sönükleşir, mikrofon açıkken büyür. Kullanıcıya **adıyla** hitap eder ("Buldum Ayse!"; selamlaşma cevapları da "Merhaba Ayse!"). Arayüz siyah temadır. Sol üstteki ☰ sohbet listesini açıp kapatır. Kod: `app/static/dinyo.js`.
+- **Dinyo (karakter):** sohbetin üstünde robot gibi iki neon mavisi yuvarlak var. Fareyi ve **yazdığınız yeri** izler, göz kırpar; düşünürken sağa sola tarar, cevap verirken ritimle atar, çözümü bulunca gülen kemer şekline gelir, bulamayınca biri küçülür, hata olunca sönükleşir, mikrofon açıkken büyür. **Gözlere dokununca** gözler mutlu kısılır ve tema rengi değişir (mavi, yeşil, mor, pembe, turuncu, sarı; tercih tarayıcıda hatırlanır). Kullanıcıya **gerçek adıyla** seslenir ("Buldum Kerem!", "Merhaba Kerem!"): ad ilk kurulumda, ilk girişte sorulan pencerede, sağ üstteki adın üzerine tıklayınca ya da admin panelinde "Adı değiştir" ile girilir; hiç girilmezse kullanıcı adıyla seslenir. Arayüz siyah temadır; sol üstteki ☰ sohbet listesini açıp kapatır. Kod: `app/static/dinyo.js`.
 - Bilgi, sistemin **kendi veritabanında** durur (`data/vectorstore`, ChromaDB). Klasöre dosya konmaz;
   kayıtları yalnızca adminler ekler/düzenler/siler: sohbet ekranında **Bilgi bankası** düğmesi
   (`/knowledge.html`). Silme gizlemedir, "Silinenleri göster" ile geri alınır. **JSON dışa aktar** yedek

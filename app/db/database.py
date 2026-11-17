@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     role          TEXT NOT NULL CHECK (role IN ('admin', 'user')),
     is_active     INTEGER NOT NULL DEFAULT 1,
+    display_name  TEXT NOT NULL DEFAULT '',
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -88,5 +89,8 @@ def init_db() -> None:
         # Eski veritabanlarına sonradan eklenen sütunlar (CREATE TABLE IF NOT EXISTS
         # var olan tabloyu değiştirmez)
         cols = {r["name"] for r in conn.execute("PRAGMA table_info(messages)")}
+        ucols = {r["name"] for r in conn.execute("PRAGMA table_info(users)")}
+        if "display_name" not in ucols:
+            conn.execute("ALTER TABLE users ADD COLUMN display_name TEXT NOT NULL DEFAULT ''")
         if "cards" not in cols:
             conn.execute("ALTER TABLE messages ADD COLUMN cards TEXT")

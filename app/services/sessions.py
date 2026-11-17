@@ -35,14 +35,14 @@ def resolve(token: str) -> User | None:
     """Geçerli oturumun sahibini döner. Süresi dolmuş veya pasif hesapsa None."""
     with transaction() as conn:
         row = conn.execute(
-            "SELECT u.id, u.username, u.role, u.is_active FROM sessions s "
+            "SELECT u.id, u.username, u.role, u.is_active, u.display_name FROM sessions s "
             "JOIN users u ON u.id = s.user_id "
             "WHERE s.token_hash = ? AND s.expires_at > datetime('now')",
             (_hash(token),),
         ).fetchone()
     if not row or not row["is_active"]:
         return None
-    return User(row["id"], row["username"], row["role"], True)
+    return User(row["id"], row["username"], row["role"], True, row["display_name"])
 
 
 def destroy(token: str) -> None:
