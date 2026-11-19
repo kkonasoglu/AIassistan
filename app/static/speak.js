@@ -90,6 +90,17 @@ const Speaker = (() => {
       try { localStorage.setItem(KEY, box.checked ? "on" : "off"); } catch (_) {}
       if (!box.checked) stop();
     });
+    const btn = document.getElementById("voice-menu-btn"), panel = document.getElementById("voice-panel");
+    if (btn && panel) {                                   // ⚙ düğmesi: ses ayarları penceresi
+      const close = () => { panel.classList.add("hidden"); btn.setAttribute("aria-expanded", "false"); };
+      btn.addEventListener("click", ev => {
+        ev.stopPropagation();
+        const open = panel.classList.toggle("hidden") === false;
+        btn.setAttribute("aria-expanded", String(open));
+      });
+      document.addEventListener("click", ev => { if (!panel.contains(ev.target)) close(); });
+      document.addEventListener("keydown", ev => { if (ev.key === "Escape") close(); });
+    }
     const sel = document.getElementById("voice-gender");
     if (sel) {
       try { sel.value = localStorage.getItem("dinyo-voice") === "female" ? "female" : "male"; } catch (_) {}

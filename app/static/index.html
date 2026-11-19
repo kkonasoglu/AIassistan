@@ -60,12 +60,20 @@
           <textarea id="chat-input" rows="2" maxlength="4000"
             placeholder="Sorunuzu yazın (Enter: gönder, Shift+Enter: yeni satır)"></textarea>
           <div class="composer-row">
-            <label class="check"><input type="checkbox" id="speak-on" checked> Sesli yanıt</label>
-            <select id="voice-gender" title="Dinyo'nun sesi" aria-label="Ses seçimi">
-              <option value="male">🧔 Erkek sesi</option>
-              <option value="female">👩 Kadın sesi (tiz)</option>
-            </select>
-            <label class="check"><input type="checkbox" id="auto-send" checked> Konuşma bitince otomatik gönder</label>
+            <div class="voice-menu">
+              <button type="button" id="voice-menu-btn" class="icon-btn" title="Ses ayarları" aria-label="Ses ayarları"
+                      aria-haspopup="true" aria-expanded="false">⚙</button>
+              <div id="voice-panel" class="voice-panel hidden" role="dialog" aria-label="Ses ayarları">
+                <b>Ses ayarları</b>
+                <label class="check"><input type="checkbox" id="speak-on" checked> Sesli yanıt (cevabı otomatik oku)</label>
+                <label class="check"><input type="checkbox" id="auto-send" checked> Konuşma bitince otomatik gönder</label>
+                <label for="voice-gender">Dinyo'nun sesi</label>
+                <select id="voice-gender" aria-label="Ses seçimi">
+                  <option value="male">🧔 Erkek sesi</option>
+                  <option value="female">👩 Kadın sesi (tiz)</option>
+                </select>
+              </div>
+            </div>
             <span class="spacer"></span>
             <button type="button" id="mic-btn" class="mic" title="Basılı tutun ve konuşun (F8)">🎙 Basılı tutup konuş (F8)</button>
             <button type="button" id="stop-btn" class="danger hidden">Durdur</button>
