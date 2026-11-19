@@ -7,16 +7,15 @@ const Dinyo = (() => {
     hello: "Merhaba {n}! Ben Dinyo.", idle: "Buradayım {n}, yazabilirsiniz.", typing: "{n}, sizi okuyorum…",
     thinking: "Düşünüyorum {n}…", searching: "İnternette bakıyorum {n}…", answering: "Cevaplıyorum {n}…",
     happy: "Buldum {n}!", confused: "Hmm {n}, bunu bulamadım…", sad: "Bir sorun oldu {n}…",
-    listening: "Sizi dinliyorum {n}…", speaking: "Konuşuyorum {n}…", pet: "Hihi, gıdıklandım {n}!",
+    listening: "Sizi dinliyorum {n}…", speaking: "Konuşuyorum {n}…", pet: "Buyurun {n}!",
     sleep: "Zzz… (uyuyorum, dokunun uyanırım)", wake: "Ooo, uyandım {n}!",
     love: ["Ayy, ne tatlısınız {n}! 💙", "Rica ederim {n}, her zaman! 💙", "Sizin için buradayım {n}! 💙"],
-    shy: ["Yeter ama {n}, kızardım!", "Hihi, utandım {n}…", "Dur dur, gülmekten ağlayacağım {n}!"],
   };
   // Boştayken ara sıra söylediği tatlı şeyler
   const CHATTER = ["Bir şey lazım olursa buradayım {n}.", "Gözüm sizde {n} 👀", "Bugün nasıl gidiyor {n}?",
                    "Hata kodunu yazın, ben bakarım {n}.", "Bana dokunursanız renk değiştiririm {n}!"];
-  const PET_LINES = ["Hihi, gıdıklandım {n}!", "Ayy {n}, gıdık!", "Yine mi {n}? Hoşuma gidiyor!"];
-  let petCount = 0, petReset = null;
+  const PET_LINES = ["Buyurun {n}!", "Buradayım {n}.", "Dinliyorum {n}!"];
+  
   const SLEEP_MS = 5 * 60 * 1000; // bu kadar süre hiçbir şey yapılmazsa Dinyo uyur
   const BUSY = ["thinking", "searching", "answering", "speaking", "listening", "typing"];
   let lastAct = Date.now();
@@ -165,11 +164,8 @@ const Dinyo = (() => {
   function pet() {
     const color = typeof Theme !== "undefined" ? Theme.next() : "";
     if (["thinking", "searching", "answering", "speaking", "listening"].includes(mood)) return;   // meşgulken yalnızca renk değişir
-    petCount++;                                    // art arda dokunma: 3. dokunuşta utanır
-    clearTimeout(petReset); petReset = setTimeout(() => { petCount = 0; }, 6000);
-    if (petCount >= 3) { petCount = 0; set("shy", 2600); return; }
     set("pet", 2000);
-    typeLine(PET_LINES[Math.floor(Math.random() * PET_LINES.length)] + (color ? ` (Renk: ${color})` : ""));
+    typeLine(PET_LINES[Math.floor(Math.random() * PET_LINES.length)]);
   }
 
   function greeting() {            // günün saatine göre karşılama
