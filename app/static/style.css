@@ -167,7 +167,7 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
               filter: drop-shadow(0 0 7px var(--neon-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--neon-glow) 60%, transparent));
               animation: idle 4s ease-in-out infinite; }
 .dinyo .right { animation-delay: .15s; }
-.dinyo .dot { width: 100%; height: 100%; border-radius: 50%; transition: clip-path .25s ease, transform .2s ease, height .2s, background .25s;
+.dinyo .dot { width: 100%; height: 100%; border-radius: 50%; clip-path: inset(0 0 0 0); transition: clip-path .7s cubic-bezier(.4, 0, .2, 1), transform .2s ease, height .2s, background .25s, opacity .5s;
               background: radial-gradient(circle at 38% 34%, #f2fcff 0 14%, var(--neon) 42%, color-mix(in srgb, var(--neon) 60%, #00162a) 100%); }
 .dinyo .eye.blink .dot { transform: scaleY(.08); }
 .dinyo .say { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
