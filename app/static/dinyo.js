@@ -22,7 +22,8 @@ const Dinyo = (() => {
   let lastAct = Date.now();
   const REACH = 14;               // yuvarlakların bakış yönünde kayabileceği en fazla piksel
   let root, face, say, eyes = [], mood = "idle", back = null, lastMove = 0, typingTimer = null, who = "";
-  let canvas;
+  let canvas, big, staged = false;
+  const timers = {};
 
   function nameOf(username) {     // ayse -> Ayse (Türkçe i/ı kuralıyla)
     const u = (username || "").trim();
@@ -42,8 +43,9 @@ const Dinyo = (() => {
       const dot = document.createElement("div"); dot.className = "dot";
       eye.append(dot); face.append(eye); eyes.push(eye);
     }
+    big = document.createElement("div"); big.className = "big"; big.setAttribute("aria-hidden", "true");
     say = document.createElement("div"); say.className = "say";
-    root.append(face, say);
+    root.append(face, big, say);
   }
 
   function look(dx, dy) {          // -1..1 aralığında bakış yönü
@@ -58,6 +60,32 @@ const Dinyo = (() => {
     look(dx / d * k, dy / d * k);
   }
 
+  // Yazıyormuş gibi görünüm: metin harf harf belirir, sonunda yanıp sönen imleç durur
+  const reduced = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const tidy = t => t.replace("{n}", who).replace(/\s+([!…,.])/g, "$1").replace(/, +\s*/g, ", ");
+
+  function typeInto(node, text, speed, timerKey) {
+    clearInterval(timers[timerKey]);
+    node.classList.remove("typing");
+    if (reduced() || !text) { node.textContent = text; return; }
+    node.textContent = ""; node.classList.add("typing");
+    let i = 0;
+    timers[timerKey] = setInterval(() => {
+      node.textContent = text.slice(0, ++i);
+      if (i >= text.length) { clearInterval(timers[timerKey]); node.classList.remove("typing"); }
+    }, speed);
+  }
+
+  function typeLine(text) { if (say && say.lastChild) typeInto(say.lastChild, tidy(text), 26, "line"); }
+
+  // Sohbet alanının ortasında büyük karşılama (yalnızca boş sohbette)
+  function stage(on) {
+    const main = document.querySelector(".chat-main");
+    if (main) main.classList.toggle("stage", !!on);
+    staged = !!on;
+    if (on && big) typeInto(big, tidy("Hoş geldin {n}!"), 55, "big");
+  }
+
   function set(next, ms) {
     if (!root) return;
     if (next !== "sleep") lastAct = Date.now();   // sohbet tepkileri (düşünme, cevap...) de uykuyu geciktirir
@@ -67,8 +95,9 @@ const Dinyo = (() => {
     const b = document.createElement("b"); b.textContent = "Dinyo";
     let line = next === "hello" ? greeting() : LINES[next] || "";
     if (Array.isArray(line)) line = line[Math.floor(Math.random() * line.length)];
-    const s = document.createElement("span"); s.textContent = line.replace("{n}", who).replace(/\s+([!…,.])/g, "$1").replace(/, +\s*/g, ", ");
+    const s = document.createElement("span");
     say.replaceChildren(b, s);
+    typeLine(line);                                // satır daktilo gibi harf harf yazılır
     if (next === "idle") look(0, 0);
     if (["thinking", "searching", "answering", "speaking"].includes(next)) look(0, 0);
     if (ms) back = setTimeout(() => set("idle"), ms);
@@ -140,9 +169,7 @@ const Dinyo = (() => {
     clearTimeout(petReset); petReset = setTimeout(() => { petCount = 0; }, 6000);
     if (petCount >= 3) { petCount = 0; set("shy", 2600); return; }
     set("pet", 2000);
-    say.lastChild.textContent = PET_LINES[Math.floor(Math.random() * PET_LINES.length)].replace("{n}", who)
-      .replace(/\s+([!…,.])/g, "$1");
-    if (color) say.lastChild.textContent += ` (Renk: ${color})`;
+    typeLine(PET_LINES[Math.floor(Math.random() * PET_LINES.length)] + (color ? ` (Renk: ${color})` : ""));
   }
 
   function greeting() {            // günün saatine göre karşılama
@@ -159,7 +186,7 @@ const Dinyo = (() => {
         setTimeout(() => eyes[1].classList.remove("wink"), 450);
       } else {
         const l = CHATTER[Math.floor(Math.random() * CHATTER.length)];
-        say.lastChild.textContent = l.replace("{n}", who).replace(/\s+([!…,.])/g, "$1");
+        typeLine(l);
       }
     }
     setTimeout(cute, 12000 + Math.random() * 14000);
@@ -173,6 +200,7 @@ const Dinyo = (() => {
     face.addEventListener("click", pet);
     face.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pet(); } });
     set("hello", 3500);
+    if (staged) stage(true);                       // sohbet ekranı Dinyo'dan önce hazırlandıysa büyük karşılamayı şimdi yaz
     document.addEventListener("mousemove", track);
     for (const t of ["mousemove", "mousedown", "keydown", "touchstart", "wheel", "scroll"])
       document.addEventListener(t, activity, { passive: true, capture: true });
@@ -183,7 +211,11 @@ const Dinyo = (() => {
     blink(); wander();
   }
 
-  function rename(user) { who = nameOf(user.call_name || user.username); set(mood === "hello" ? "idle" : mood); }
+  function rename(user) {
+    who = nameOf(user.call_name || user.username);
+    set(mood === "hello" ? "idle" : mood);
+    if (staged && big) typeInto(big, tidy("Hoş geldin {n}!"), 55, "big");
+  }
 
-  return { init, set, rename, name: () => who };
+  return { init, set, rename, stage, name: () => who };
 })();

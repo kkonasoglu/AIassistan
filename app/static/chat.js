@@ -54,9 +54,9 @@ const Chat = (() => {
       grid.append(el("button", { type: "button", class: "tip", onclick: () => send(q) },
         el("b", {}, q), el("span", {}, d)));
     $("messages").replaceChildren(el("div", { class: "welcome" },
-      el("h3", {}, `Merhaba${typeof Dinyo !== "undefined" && Dinyo.name() ? " " + Dinyo.name() : ""}, ben Dinyo. Size nasıl yardımcı olabilirim?`),
       el("p", { class: "muted" }, "Sorunu ya da hata kodunu yazın; kayıtlı çözümü hemen getiririm. Konuşmak için F8'e basılı tutun."),
       grid));
+    if (typeof Dinyo !== "undefined") Dinyo.stage(true);   // boş sohbet: Dinyo ortada, büyük "Hoş geldin"
   }
 
   async function refreshList() {
@@ -81,6 +81,7 @@ const Chat = (() => {
     const msgs = await api(`/api/chat/conversations/${id}`);
     convId = id;
     $("messages").replaceChildren();
+    if (msgs.length && typeof Dinyo !== "undefined") Dinyo.stage(false);
     msgs.forEach((m, i) => {
       const b = bubble(m.role, m.content, m.cards);
       // yalnızca son mesajdaki taslak hâlâ onay bekliyor olabilir
@@ -119,6 +120,7 @@ const Chat = (() => {
       if (convId === null) convId = (await api("/api/chat/conversations", "POST")).id;
     } catch (e) { return say($("chat-status"), e.message); }
     if ($("messages").querySelector(".welcome")) $("messages").replaceChildren();
+    if (typeof Dinyo !== "undefined") Dinyo.stage(false);   // sohbet başladı: Dinyo üstte küçük şeride geçer
 
     if (typeof Speaker !== "undefined") Speaker.stop();   // yeni soru: eski okuma kesilir
     bubble("user", text);
