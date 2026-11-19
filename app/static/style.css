@@ -164,12 +164,12 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
          background: var(--face); border: 1px solid var(--line); border-radius: 16px; flex: none; }
 .dinyo .face { display: flex; gap: 22px; padding: 8px 14px; background: none; border: 0; }
 .dinyo .eye { width: calc(var(--es, 34px) * .7); height: calc(var(--es, 34px) * 1.15);   /* yukarı doğru oval */ translate: calc(var(--lx) * var(--k, 1)) calc(var(--ly) * var(--k, 1)); transition: translate .16s ease-out, scale .2s;
-              filter: drop-shadow(0 0 7px var(--neon-glow)) drop-shadow(0 0 16px color-mix(in srgb, var(--neon-glow) 60%, transparent));
+              /* neon parlama yok: yalnızca düz gözler */
               animation: idle 4s ease-in-out infinite; }
 .dinyo .right { animation-delay: .15s; }
-.dinyo .dot { width: 100%; height: 100%; border-radius: 50%; clip-path: inset(0 0 0 0); transition: clip-path .7s cubic-bezier(.4, 0, .2, 1), transform .2s ease, height .2s, background .25s, opacity .5s;
+.dinyo .dot { width: 100%; height: 100%; border-radius: 50%; transition: transform .6s cubic-bezier(.4, 0, .2, 1), background .25s, opacity .5s;
               background: radial-gradient(circle at 38% 34%, #f2fcff 0 14%, var(--neon) 42%, color-mix(in srgb, var(--neon) 60%, #00162a) 100%); }
-.dinyo .eye.blink .dot { transform: scaleY(.08); }
+.dinyo .eye.blink .dot { transform: scaleY(.08); transition-duration: .07s; }   /* göz kırpma hızlı kalır */
 .dinyo .say { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .dinyo .say b { font-size: 15px; letter-spacing: .02em; }
 .dinyo .say span { color: var(--muted); font-size: 13.5px; }
@@ -177,7 +177,7 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
 
 /* yazıyor: yuvarlaklar yazılan yere bakar, odaklanıp hafif parlar */
 .dinyo[data-mood="typing"] .dot { transform: scaleY(.88); }
-.dinyo[data-mood="typing"] .eye { animation: none; filter: drop-shadow(0 0 9px var(--neon-glow)) drop-shadow(0 0 22px var(--neon-glow)); }
+.dinyo[data-mood="typing"] .eye { animation: none; }
 
 /* düşünüyor: iki yuvarlak sırayla yanıp sönerek sağa sola tarar */
 .dinyo[data-mood="thinking"] .eye { animation: scan 1.6s ease-in-out infinite; }
@@ -191,7 +191,7 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
 @keyframes talk { from { scale: 1; } to { scale: 1.2 1.05; } }
 
 /* buldu: gülen gözler ^ ^ (yuvarlağın üst yarısı), yeşilimsi parlama */
-.dinyo[data-mood="happy"] .dot, .dinyo[data-mood="pet"] .dot { clip-path: inset(0 0 48% 0); }
+.dinyo[data-mood="happy"] .dot, .dinyo[data-mood="pet"] .dot { transform: scaleY(.5); }   /* kısık, mutlu göz: yumuşakça yassılır */
 .dinyo[data-mood="pet"] .eye { animation: hop .5s ease-out 1; }
 .dinyo .face { cursor: pointer; }
 .dinyo .face:active .eye { scale: .9; }
@@ -204,7 +204,7 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
 .dinyo[data-mood="confused"] .eye { animation: none; }
 
 /* hata: yuvarlaklar sönükleşip aşağı sarkar, kırmızımsı parlama */
-.dinyo[data-mood="sad"] .dot { clip-path: inset(46% 0 0 0); opacity: .8; }
+.dinyo[data-mood="sad"] .dot { transform: scaleY(.6) translateY(22%); opacity: .8; }
 .dinyo[data-mood="sad"] .eye { animation: none; --neon-glow: #ff5a4f; }
 
 /* dinliyor: büyür, halka gibi dalga yayar */
@@ -213,13 +213,13 @@ button.mic.recording { background: var(--danger); color: #fff; border-color: var
 
 /* uyku: gözler ince çizgi, sönük, yavaş nefes alır; uyanınca kısa bir sıçrama */
 .dinyo[data-mood="sleep"] .dot { transform: scaleY(.08); opacity: .45; }
-.dinyo[data-mood="sleep"] .eye { animation: breathe 3.6s ease-in-out infinite; filter: none; }
+.dinyo[data-mood="sleep"] .eye { animation: breathe 3.6s ease-in-out infinite; }
 @keyframes breathe { 50% { scale: .9; opacity: .7; } }
 .dinyo[data-mood="wake"] .eye { animation: hop .5s ease-out 1; }
 
 /* tek göz kırpma */
 .dinyo .face { position: relative; }
-.dinyo .eye.wink .dot { transform: scaleY(.08); }
+.dinyo .eye.wink .dot { transform: scaleY(.08); transition-duration: .12s; }
 .voice-menu { position: relative; }
 .icon-btn { padding: 6px 10px; font-size: 16px; line-height: 1; background: var(--soft); color: var(--text); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
 .icon-btn:hover, .icon-btn[aria-expanded="true"] { border-color: var(--accent); }
