@@ -186,7 +186,7 @@ const Chat = (() => {
       if (typeof Dinyo !== "undefined") {      // karakterin tepkisi: buldu / bulamadı / hata
         const reply = answer.body.textContent || "";
         if (failed) Dinyo.set("sad", 5000);
-        else if (/te[sş]ekk[uü]r|sa[gğ]\s?ol|eyvallah|harikas[ıi]n|[çc]ok iyi/i.test(text)) Dinyo.set("love", 5000);   // teşekkür: kalp gözler
+        else if (/te[sş]ekk[uü]r|sa[gğ]\s?ol|eyvallah|harikas[ıi]n|[çc]ok iyi/i.test(text)) Dinyo.set("love", 5000);   // teşekkür: kısa, sade cevap
         else if (gotCards) Dinyo.set("happy", 4500);
         else if (/bulamad|boş|aramamı ister/i.test(reply)) Dinyo.set("confused", 5000);
         else Dinyo.set("idle");

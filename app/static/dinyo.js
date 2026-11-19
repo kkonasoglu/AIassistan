@@ -9,7 +9,7 @@ const Dinyo = (() => {
     happy: "Buldum {n}!", confused: "Hmm {n}, bunu bulamadım…", sad: "Bir sorun oldu {n}…",
     listening: "Sizi dinliyorum {n}…", speaking: "Konuşuyorum {n}…", pet: "Buyurun {n}!",
     sleep: "Zzz… (uyuyorum, dokunun uyanırım)", wake: "Ooo, uyandım {n}!",
-    love: ["Ayy, ne tatlısınız {n}! 💙", "Rica ederim {n}, her zaman! 💙", "Sizin için buradayım {n}! 💙"],
+    love: ["Rica ederim {n}.", "Ne demek {n}.", "Her zaman {n}."],
   };
   // Boştayken ara sıra söylediği tatlı şeyler
   const CHATTER = ["Bir şey lazım olursa buradayım {n}.", "Gözüm sizde {n} 👀", "Bugün nasıl gidiyor {n}?",
@@ -35,7 +35,6 @@ const Dinyo = (() => {
     face = document.createElement("div"); face.className = "face";
     face.setAttribute("role", "button"); face.tabIndex = 0;
     face.title = "Dokunun: tema rengi değişir";
-    for (const side of ["l", "r"]) { const c = document.createElement("i"); c.className = "cheek " + side; face.append(c); }
     face.setAttribute("aria-label", "Dinyo'nun gözleri: dokunun, tema rengi değişir");
     for (let i = 0; i < 2; i++) {
       const eye = document.createElement("div"); eye.className = "eye " + (i ? "right" : "left");
