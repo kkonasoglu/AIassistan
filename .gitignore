@@ -8,3 +8,4 @@ data/vectorstore/
 data/certs/
 data/models/*
 !data/models/.gitkeep
+yedek/

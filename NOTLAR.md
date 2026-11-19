@@ -69,3 +69,5 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 - Kod haritası için README "Klasörler" bölümüne bakın; ayarların hepsi `app/core/config.py` içinde.
 
 10. **Tatlı tepkiler + ses seçimi:** Dinyo uyku modu (5 dk), utanma/kalp göz/göz kırpma/boşta konuşma (`dinyo.js`). Ses seçimi Erkek/Kadın: kadın = aynı dfki modeli, perde `OFIS_TTS_FEMALE_PITCH` (1.4) kat yükseltilir (gerçek kadın Türkçe çevrimdışı ses bulunamadı; F0 ~110 -> ~155 Hz). Tercih tarayıcıda (dinyo-voice).
+
+11. **Docker (her platform):** `Dockerfile` + `docker-compose.yml` (servisler: ollama, model-pull [bir kez modelleri indirir], app). Veri `ofis-data` biriminde (/data), proje adı sabit `ofisasistan`. `docker-baslat/yedekle/geri-yukle.bat`. Windows Docker Desktop (WSL2, 6 CPU/8 GB) üzerinde UÇTAN UCA doğrulandı: kurulum, komut, kaydetme, arama, ses, yeniden başlatmada veri kalıcılığı, yedek+geri yükleme. DOĞRULANMADI: gerçek Linux sunucu, ekran kartı (GPU) geçişi, LAN adresinden erişim (sertifika SAN konteyner IP’sini içerir, tarayıcı zaten uyarı verir). Native 8443 ile Docker 8443 çakışır: OFIS_PORT kullanın.

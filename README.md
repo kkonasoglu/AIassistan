@@ -3,7 +3,19 @@
 Ofis içi yerel ağda (LAN) çalışan, tamamen offline, bilgi bankalı yapay zeka asistanı.
 Python + FastAPI + sade HTML/JS arayüz. Dışarıya veri göndermez.
 
-## Çalıştırma
+## Docker ile çalıştırma (önerilen: Windows / Linux / Mac aynı)
+Python, Ollama ve modeller kurmak gerekmez; yalnızca Docker (Windows'ta Docker Desktop) yeterli.
+1. `docker-baslat.bat` (Windows) ya da `docker compose up -d --build` (her yerde). İlk seferde yaklaşık 3 GB model iner.
+2. `https://localhost:8443` (ağdan `https://<sunucu-ip>:8443`). İlk girişte sertifika uyarısı: "Gelişmiş > Devam et".
+3. Bilgisayar/Docker yeniden başlayınca kendiliğinden kalkar (`restart: unless-stopped`; Windows'ta Docker Desktop'ta
+   "Oturum açınca başlat" açık olmalı). Durdurmak: `docker compose down` (veri silinmez).
+4. Yedek: `docker-yedekle.bat` → `yedek\ofis-data-TARIH.tar.gz` (veritabanı, bilgi bankası, sertifika; modeller hariç).
+   Geri yükleme: `docker-geri-yukle.bat yedek\DOSYA.tar.gz`.
+5. Başka port: `OFIS_PORT=9443 docker compose up -d`. Native sunucu (aşağıdaki bölüm) 8443'ü tutuyorsa önce onu kapatın ya da farklı port kullanın.
+6. Güncelleme: kodu çekip `docker compose up -d --build`. Veri `ofis-data` biriminde kalır.
+Not: tüm ayarlar `OFIS_...` ortam değişkenleriyle (docker-compose.yml `environment`) verilir. Ses/konuşma modelleri ilk kullanımda indirilir (internet gerekir).
+
+## Çalıştırma (Docker'sız, yalnızca Windows)
 1. İlk kurulumda (veya klasörü yeni bilgisayara kopyalayınca): `powershell -ExecutionPolicy Bypass -File setup.ps1`
 2. Ollama kurulu olmalı: `ollama pull qwen2.5:3b` ve `ollama pull bge-m3`
 3. `Ofis Asistanı.bat` (sunucuyu başlatır, tarayıcıyı açar) veya `start_server.bat` (sunucu penceresi görünür)

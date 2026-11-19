@@ -1,0 +1,46 @@
+# Ofis Asistanı: tek komutla kurulum ve başlatma (Windows / Linux / Mac fark etmez)
+#   docker compose up -d --build        ilk kurulum + başlatma (modeller ilk seferde indirilir, birkaç GB)
+#   docker compose logs -f app          kayıtları izle
+#   docker compose down                 durdur (veri silinmez)
+# Adres: https://SUNUCU-IP:8443   (kendi imzalı sertifika: tarayıcıda "Gelişmiş > Devam et")
+# Başka port: OFIS_PORT=9443 docker compose up -d
+name: ofisasistan          # birim adları sabit kalsın (yedek betikleri buna bağlı)
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # Bir kez çalışır: gerekli modelleri indirir (varsa atlar), sonra çıkar.
+  model-pull:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c", "ollama pull qwen2.5:3b && ollama pull bge-m3"]
+    restart: "no"
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      model-pull:
+        condition: service_completed_successfully
+    environment:
+      OFIS_OLLAMA_HOST: http://ollama:11434
+    ports:
+      - "${OFIS_PORT:-8443}:8443"
+    volumes:
+      - ofis-data:/data
+
+volumes:
+  ollama:
+  ofis-data:
