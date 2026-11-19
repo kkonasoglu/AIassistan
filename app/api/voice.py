@@ -61,6 +61,7 @@ async def transcribe(request: Request, user: User = Depends(current_user)):
 
 class SpeakBody(BaseModel):
     text: str
+    voice: str = "male"        # "male" | "female"
 
 
 @router.post("/speak")
@@ -73,7 +74,8 @@ async def speak(body: SpeakBody, user: User = Depends(current_user)):
     loop = asyncio.get_running_loop()
     try:
         async with llm_queue.slot():           # sentez de CPU kullanır: sıraya gir
-            audio = await loop.run_in_executor(None, tts.synthesize, body.text)
+            audio = await loop.run_in_executor(None, tts.synthesize, body.text,
+                                               body.voice if body.voice in tts.VOICES else "male")
     except tts.ModelUnavailable:
         raise HTTPException(503, "Ses modeli yüklenemedi. İlk kurulumda modelin indirilmesi "
                                  "için sunucunun internete bağlı olması gerekir.")

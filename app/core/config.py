@@ -38,7 +38,8 @@ class Settings(BaseSettings):
     tts_enabled: bool = True
     tts_voice: str = "tr_TR-dfki-medium"   # Piper ses adı (Hugging Face rhasspy/piper-voices); ilk kullanımda indirilir
     tts_length_scale: float = 1.0          # konuşma hızı: <1 hızlı, >1 yavaş
-    tts_max_chars: int = 700               # tek seferde okunacak üst sınır (uzun cevaplar cümle sınırından kesilir)
+    tts_female_pitch: float = 1.4          # "kadın" ses: aynı model, perde bu kat yükseltilir (tiz, tatlı robot sesi)
+    tts_max_chars: int = 700              # tek seferde okunacak üst sınır (uzun cevaplar cümle sınırından kesilir)
     tts_preload: bool = True               # sunucu açılırken modeli arka planda yükle
     tts_models_path: Path | None = None    # boşsa data/models/tts
 

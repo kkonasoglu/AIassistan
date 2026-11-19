@@ -61,6 +61,10 @@
             placeholder="Sorunuzu yazın (Enter: gönder, Shift+Enter: yeni satır)"></textarea>
           <div class="composer-row">
             <label class="check"><input type="checkbox" id="speak-on" checked> Sesli yanıt</label>
+            <select id="voice-gender" title="Dinyo'nun sesi" aria-label="Ses seçimi">
+              <option value="male">🧔 Erkek sesi</option>
+              <option value="female">👩 Kadın sesi (tiz)</option>
+            </select>
             <label class="check"><input type="checkbox" id="auto-send" checked> Konuşma bitince otomatik gönder</label>
             <span class="spacer"></span>
             <button type="button" id="mic-btn" class="mic" title="Basılı tutun ve konuşun (F8)">🎙 Basılı tutup konuş (F8)</button>

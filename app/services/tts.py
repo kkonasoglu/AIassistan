@@ -106,16 +106,36 @@ def clean_for_speech(text: str, limit: int | None = None) -> str:
     return t
 
 
-def synthesize(text: str) -> bytes:
-    """Metni WAV'a çevirir. Okunacak bir şey kalmazsa b"" döner."""
+VOICES = ("male", "female")
+
+
+def _raise_pitch(wav: bytes, factor: float) -> bytes:
+    """Aynı örnekleri daha yüksek örnekleme hızı etiketiyle yazar: ses tizleşir ve hızlanır
+    (hız, sentezde length_scale ile önceden dengelenir). Ek kütüphane gerekmez."""
+    with wave.open(io.BytesIO(wav), "rb") as r:
+        params, frames = r.getparams(), r.readframes(r.getnframes())
+    out = io.BytesIO()
+    with wave.open(out, "wb") as w:
+        w.setnchannels(params.nchannels)
+        w.setsampwidth(params.sampwidth)
+        w.setframerate(int(params.framerate * factor))
+        w.writeframes(frames)
+    return out.getvalue()
+
+
+def synthesize(text: str, gender: str = "male") -> bytes:
+    """Metni WAV'a çevirir. gender: "male" (doğal) | "female" (yükseltilmiş perde).
+    Okunacak bir şey kalmazsa b"" döner."""
     speech = clean_for_speech(text)
     if not re.search(r"\w", speech):
         return b""
     voice = get_voice()
     from piper import SynthesisConfig
-    cfg = SynthesisConfig(length_scale=settings.tts_length_scale)
+    pitch = settings.tts_female_pitch if gender == "female" else 1.0
+    cfg = SynthesisConfig(length_scale=settings.tts_length_scale * pitch)   # tizleşince hızlanan sesi yavaşlat
     buf = io.BytesIO()
     with _lock:                                  # tek motor örneği: aynı anda tek sentez
         with wave.open(buf, "wb") as w:
             voice.synthesize_wav(speech, w, syn_config=cfg)
-    return buf.getvalue()
+    wav = buf.getvalue()
+    return _raise_pitch(wav, pitch) if pitch != 1.0 else wav

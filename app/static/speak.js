@@ -7,6 +7,11 @@ const Speaker = (() => {
   const dinyo = (mood, ms) => { if (typeof Dinyo !== "undefined") Dinyo.set(mood, ms); };
   const note = (text) => { const s = document.getElementById("chat-status"); if (s) say(s, text); };
 
+  function gender() {
+    const s = document.getElementById("voice-gender");
+    return s && s.value === "female" ? "female" : "male";
+  }
+
   function enabled() {
     const box = document.getElementById("speak-on");
     return !!(box && box.checked);
@@ -51,7 +56,7 @@ const Speaker = (() => {
       const res = await fetch("/api/voice/speak", {
         method: "POST", credentials: "same-origin",
         headers: { "X-Requested-With": "fetch", "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, voice: gender() }),
       });
       if (mine !== ticket) return;
       if (res.status === 204) { if (button) button.classList.remove("on"); return; }
@@ -85,6 +90,16 @@ const Speaker = (() => {
       try { localStorage.setItem(KEY, box.checked ? "on" : "off"); } catch (_) {}
       if (!box.checked) stop();
     });
+    const sel = document.getElementById("voice-gender");
+    if (sel) {
+      try { sel.value = localStorage.getItem("dinyo-voice") === "female" ? "female" : "male"; } catch (_) {}
+      sel.addEventListener("change", () => {
+        try { localStorage.setItem("dinyo-voice", sel.value); } catch (_) {}
+        stop();
+        if (typeof Dinyo !== "undefined") Dinyo.set("happy", 2500);
+        speak(sel.value === "female" ? "Merhaba! Şimdi böyle konuşuyorum." : "Merhaba! Şimdi böyle konuşuyorum.");   // deneme
+      });
+    }
   }
 
   return { init, enabled, speak, stop, toggle, textOf, isPlaying: () => playing };

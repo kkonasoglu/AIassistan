@@ -9,7 +9,14 @@ const Dinyo = (() => {
     happy: "Buldum {n}!", confused: "Hmm {n}, bunu bulamadım…", sad: "Bir sorun oldu {n}…",
     listening: "Sizi dinliyorum {n}…", speaking: "Konuşuyorum {n}…", pet: "Hihi, gıdıklandım {n}!",
     sleep: "Zzz… (uyuyorum, dokunun uyanırım)", wake: "Ooo, uyandım {n}!",
+    love: ["Ayy, ne tatlısınız {n}! 💙", "Rica ederim {n}, her zaman! 💙", "Sizin için buradayım {n}! 💙"],
+    shy: ["Yeter ama {n}, kızardım!", "Hihi, utandım {n}…", "Dur dur, gülmekten ağlayacağım {n}!"],
   };
+  // Boştayken ara sıra söylediği tatlı şeyler
+  const CHATTER = ["Bir şey lazım olursa buradayım {n}.", "Gözüm sizde {n} 👀", "Bugün nasıl gidiyor {n}?",
+                   "Hata kodunu yazın, ben bakarım {n}.", "Bana dokunursanız renk değiştiririm {n}!"];
+  const PET_LINES = ["Hihi, gıdıklandım {n}!", "Ayy {n}, gıdık!", "Yine mi {n}? Hoşuma gidiyor!"];
+  let petCount = 0, petReset = null;
   const SLEEP_MS = 5 * 60 * 1000; // bu kadar süre hiçbir şey yapılmazsa Dinyo uyur
   const BUSY = ["thinking", "searching", "answering", "speaking", "listening", "typing"];
   let lastAct = Date.now();
@@ -28,6 +35,7 @@ const Dinyo = (() => {
     face = document.createElement("div"); face.className = "face";
     face.setAttribute("role", "button"); face.tabIndex = 0;
     face.title = "Dokunun: tema rengi değişir";
+    for (const side of ["l", "r"]) { const c = document.createElement("i"); c.className = "cheek " + side; face.append(c); }
     face.setAttribute("aria-label", "Dinyo'nun gözleri: dokunun, tema rengi değişir");
     for (let i = 0; i < 2; i++) {
       const eye = document.createElement("div"); eye.className = "eye " + (i ? "right" : "left");
@@ -57,7 +65,9 @@ const Dinyo = (() => {
     mood = next;
     root.dataset.mood = next === "hello" ? "happy" : next;
     const b = document.createElement("b"); b.textContent = "Dinyo";
-    const s = document.createElement("span"); s.textContent = (LINES[next] || "").replace("{n}", who).replace(/\s+([!…,.])/g, "$1").replace(/, +\s*/g, ", ");
+    let line = next === "hello" ? greeting() : LINES[next] || "";
+    if (Array.isArray(line)) line = line[Math.floor(Math.random() * line.length)];
+    const s = document.createElement("span"); s.textContent = line.replace("{n}", who).replace(/\s+([!…,.])/g, "$1").replace(/, +\s*/g, ", ");
     say.replaceChildren(b, s);
     if (next === "idle") look(0, 0);
     if (["thinking", "searching", "answering", "speaking"].includes(next)) look(0, 0);
@@ -126,8 +136,33 @@ const Dinyo = (() => {
   function pet() {
     const color = typeof Theme !== "undefined" ? Theme.next() : "";
     if (["thinking", "searching", "answering", "speaking", "listening"].includes(mood)) return;   // meşgulken yalnızca renk değişir
+    petCount++;                                    // art arda dokunma: 3. dokunuşta utanır
+    clearTimeout(petReset); petReset = setTimeout(() => { petCount = 0; }, 6000);
+    if (petCount >= 3) { petCount = 0; set("shy", 2600); return; }
     set("pet", 2000);
+    say.lastChild.textContent = PET_LINES[Math.floor(Math.random() * PET_LINES.length)].replace("{n}", who)
+      .replace(/\s+([!…,.])/g, "$1");
     if (color) say.lastChild.textContent += ` (Renk: ${color})`;
+  }
+
+  function greeting() {            // günün saatine göre karşılama
+    const h = new Date().getHours();
+    const g = h < 6 ? "Gece çalışıyoruz demek" : h < 12 ? "Günaydın" : h < 18 ? "İyi günler" : "İyi akşamlar";
+    return `${g} {n}! Ben Dinyo.`;
+  }
+
+  // Boşta tatlılıklar: ara sıra göz kırpar (tek göz) ve bir şeyler söyler
+  function cute() {
+    if (root && mood === "idle") {
+      if (Math.random() < .5) {
+        eyes[1].classList.add("wink");
+        setTimeout(() => eyes[1].classList.remove("wink"), 450);
+      } else {
+        const l = CHATTER[Math.floor(Math.random() * CHATTER.length)];
+        say.lastChild.textContent = l.replace("{n}", who).replace(/\s+([!…,.])/g, "$1");
+      }
+    }
+    setTimeout(cute, 12000 + Math.random() * 14000);
   }
 
   function init(user) {
@@ -141,7 +176,7 @@ const Dinyo = (() => {
     document.addEventListener("mousemove", track);
     for (const t of ["mousemove", "mousedown", "keydown", "touchstart", "wheel", "scroll"])
       document.addEventListener(t, activity, { passive: true, capture: true });
-    napCheck();
+    napCheck(); setTimeout(cute, 15000);
     const input = document.getElementById("chat-input");
     if (input) for (const t of ["input", "keyup", "click", "focus"])
       input.addEventListener(t, () => { if (t === "input" || input.value) onTyping(input); });

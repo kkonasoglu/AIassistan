@@ -64,6 +64,19 @@ class SynthService(unittest.TestCase):
         self.assertEqual(text, "K N K, 204 hatası")
         self.assertEqual(cfg.length_scale, 1.2)
 
+    def test_female_voice_raises_pitch_and_compensates_speed(self):
+        import io
+        with patch.object(tts, "_load", return_value=FakeVoice()), patch.object(settings, "tts_female_pitch", 1.4):
+            data = tts.synthesize("merhaba", "female")
+            male = tts.synthesize("merhaba", "male")
+        with wave.open(io.BytesIO(data)) as w:
+            self.assertEqual(w.getframerate(), int(22050 * 1.4))
+            self.assertEqual(w.getnframes(), 2205)               # örnekler aynı, yalnızca hız etiketi değişti
+        with wave.open(io.BytesIO(male)) as w:
+            self.assertEqual(w.getframerate(), 22050)
+        self.assertAlmostEqual(FakeVoice.calls[0][1].length_scale, 1.4)   # tizleşince hızlanan ses yavaşlatılır
+        self.assertEqual(FakeVoice.calls[1][1].length_scale, 1.0)
+
     def test_empty_speech_does_not_load_model(self):
         with patch.object(tts, "_load") as load:
             self.assertEqual(tts.synthesize("😀 ***"), b"")

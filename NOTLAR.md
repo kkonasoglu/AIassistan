@@ -67,3 +67,5 @@ Tamamen yerel/offline ofis yapay zeka asistanı. Veri dışarı çıkmaz.
 - Python/Bash heredoc içinde ters eğik çizgi bozuluyor; düzenlemeleri dosya düzenleme aracıyla yap.
 - Testler: `.venv\Scripts\python.exe -m unittest discover -s tests -t .` (gerçek model/ağ gerektirmez; `tests/__init__.py` Whisper ön yüklemeyi kapatır).
 - Kod haritası için README "Klasörler" bölümüne bakın; ayarların hepsi `app/core/config.py` içinde.
+
+10. **Tatlı tepkiler + ses seçimi:** Dinyo uyku modu (5 dk), utanma/kalp göz/göz kırpma/boşta konuşma (`dinyo.js`). Ses seçimi Erkek/Kadın: kadın = aynı dfki modeli, perde `OFIS_TTS_FEMALE_PITCH` (1.4) kat yükseltilir (gerçek kadın Türkçe çevrimdışı ses bulunamadı; F0 ~110 -> ~155 Hz). Tercih tarayıcıda (dinyo-voice).
