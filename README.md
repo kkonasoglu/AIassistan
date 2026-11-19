@@ -11,8 +11,9 @@ Python, Ollama ve modeller kurmak gerekmez; yalnızca Docker (Windows'ta Docker 
    "Oturum açınca başlat" açık olmalı). Durdurmak: `docker compose down` (veri silinmez).
 4. Yedek: `docker-yedekle.bat` → `yedek\ofis-data-TARIH.tar.gz` (veritabanı, bilgi bankası, sertifika; modeller hariç).
    Geri yükleme: `docker-geri-yukle.bat yedek\DOSYA.tar.gz`.
-5. Başka port: `OFIS_PORT=9443 docker compose up -d`. Native sunucu (aşağıdaki bölüm) 8443'ü tutuyorsa önce onu kapatın ya da farklı port kullanın.
-6. Güncelleme: kodu çekip `docker compose up -d --build`. Veri `ofis-data` biriminde kalır.
+5. Ağdaki diğer cihazlar bağlanamıyorsa: yönetici PowerShell'de yukarıdaki güvenlik duvarı komutunu çalıştırın (port 8443). Hâlâ olmuyorsa modemde "AP/istemci yalıtımı" açık olabilir.
+6. Başka port: `OFIS_PORT=9443 docker compose up -d`. Native sunucu (aşağıdaki bölüm) 8443'ü tutuyorsa önce onu kapatın ya da farklı port kullanın.
+7. Güncelleme: kodu çekip `docker compose up -d --build`. Veri `ofis-data` biriminde kalır.
 Not: tüm ayarlar `OFIS_...` ortam değişkenleriyle (docker-compose.yml `environment`) verilir. Ses/konuşma modelleri ilk kullanımda indirilir (internet gerekir).
 
 ## Çalıştırma (Docker'sız, yalnızca Windows)
@@ -20,7 +21,8 @@ Not: tüm ayarlar `OFIS_...` ortam değişkenleriyle (docker-compose.yml `enviro
 2. Ollama kurulu olmalı: `ollama pull qwen2.5:3b` ve `ollama pull bge-m3`
 3. `Ofis Asistanı.bat` (sunucuyu başlatır, tarayıcıyı açar) veya `start_server.bat` (sunucu penceresi görünür)
 4. Diğer bilgisayarlar için (yönetici PowerShell, bir kez):
-   `New-NetFirewallRule -DisplayName "Ofis Asistani" -Direction Inbound -Protocol TCP -LocalPort 8443 -Action Allow -Profile Private`
+   `New-NetFirewallRule -DisplayName "Ofis Asistani" -Direction Inbound -Protocol TCP -LocalPort 8443 -Action Allow -Profile Any -RemoteAddress LocalSubnet`
+   (Ağınız Windows'ta "Genel/Public" görünüyorsa `-Profile Private` işe yaramaz; `Any` + `LocalSubnet` yalnızca aynı yerel ağdan erişime izin verir.)
 5. Ağdaki bilgisayarlardan `https://<sunucu-ip>:8443` (ilk girişte sertifika uyarısı: kendi imzalı sertifika).
    Sunucunun IP'si değişirse: `.venv\Scripts\python.exe -m scripts.make_cert --force`
 
