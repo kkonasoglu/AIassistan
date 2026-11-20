@@ -25,10 +25,10 @@ class Parsing(unittest.TestCase):
     def test_say_commands(self):
         self.assertEqual(c.weak_say("merhaba de"), "Merhaba!")
         self.assertEqual(c.weak_say("Bana günaydın de"), "Günaydın!")
-        self.assertEqual(c.weak_say("kolay gelsin yaz"), "Kolay gelsin.")
+        self.assertEqual(c.weak_say("kolay gelsin yaz"), "Kolay gelsin!")
         self.assertEqual(quick("selam söyle"), "Selam!")
-        self.assertEqual(quick("de ki kolay gelsin"), "Kolay gelsin.")
-        self.assertEqual(quick("şunu söyle: yarın görüşürüz"), "Yarın görüşürüz.")
+        self.assertEqual(quick("de ki kolay gelsin"), "Kolay gelsin!")
+        self.assertEqual(quick("şunu söyle: yarın görüşürüz"), "Yarın görüşürüz!")
         self.assertEqual(quick('"Merhaba dünya" diye söyle'), "Merhaba dünya!")
         self.assertEqual(quick("İyi akşamlar söyler misin?"), "İyi akşamlar!")
 

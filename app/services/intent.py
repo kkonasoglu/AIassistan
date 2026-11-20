@@ -3,6 +3,7 @@
 Neden kural tabanlı? 3B model bu tür kesin kararlarda tutarsız kalabiliyor; selamlaşmaya
 "kayıt bulamadım" demek de, teşekkürü uzun bir cevapla karşılamak da kötü deneyim.
 """
+import random
 import re
 
 
@@ -19,8 +20,42 @@ ACK = "Tamamdır! Başka bir konuda yardımcı olabilirim."
 _GREET = re.compile(r"^(merhaba|merhabalar|selam|selamlar|günaydın|iyi günler|iyi akşamlar|"
                     r"iyi çalışmalar|hey)\b")
 _THANKS = re.compile(r"\b(teşekkür|sağ ?ol|eyvallah|saol)\w*")
-_HOW = re.compile(r"\bnasılsın\b")
+_HOW = re.compile(r"\b(nasılsın|nasılsınız|naber|ne haber|nasıl gidiyor|iyi misin|ne var ne yok|keyfin nasıl)\b")
 _ACK = {"tamam", "tamamdır", "anladım", "olur", "ok", "okey", "peki", "süper", "harika"}
+
+
+# Günlük sohbet: kısa, kurallı, uydurma riski olmayan cevaplar (birden çok seçenekten biri rastgele seçilir).
+# Sıra önemlidir: önce özel (kızgınlık, veda), sonra genel. Ad hitabı personalize() ile eklenir.
+_ME = r"(?:ben de |ben |çok |gayet )?"
+_EXTRAS = [
+    (re.compile(r"\b(aptal|salak|geri zekalı|işe yaramaz|rezil|zeki değil|anlamıyorsun|bir şey bilmiyorsun|beceriksiz)\w*"),
+     ["Üzgünüm, yeterince yardımcı olamadım! Sorunu biraz farklı yazarsanız tekrar deneyeyim.",
+      "Haklısınız, daha iyisini yapmalıyım! Hata kodunu ya da sorunu başka kelimelerle yazar mısınız?"]),
+    (re.compile(r"\b(görüşürüz|hoşça ?kal|bay bay|bye|güle güle|iyi geceler|kendine iyi bak|ben çıkıyorum|ben gidiyorum)\b"),
+     ["Görüşmek üzere!", "Hoşça kalın, iyi çalışmalar!", "Görüşürüz, ihtiyacınız olursa buradayım!"]),
+    (re.compile(r"\bkolay gelsin\b"), ["Size de kolay gelsin!", "Sağ olun, size de kolay gelsin!"]),
+    (re.compile(r"\b(ne yapıyorsun|napıyorsun|ne yapıyosun|napıyosun|neyle meşgulsün)\b"),
+     ["Sizi bekliyordum! Bir sorun ya da hata kodu yazarsanız hemen bakarım.",
+      "Buradayım, sorularınızı bekliyorum!"]),
+    (re.compile(r"\b(orada mısın|burada mısın|duyuyor musun|var mısın|uyuyor musun|uyudun mu|uyandın mı)\b"),
+     ["Buradayım! Dinliyorum.", "Evet, buradayım! Nasıl yardımcı olabilirim?"]),
+    (re.compile(r"\b(seni seviyorum|sevdim seni|canım benim|tatlısın|sevimlisin)\b"),
+     ["Çok naziksiniz! Ben de size yardımcı olmaktan memnunum.", "Ne güzel söylediniz! Teşekkür ederim."]),
+    (re.compile(r"\b(aferin|bravo|helal|çok iyisin|harikasın|süpersin|akıllısın|zekisin|çok güzel|mükemmel|beğendim)\b"),
+     ["Teşekkür ederim, çok naziksiniz!", "Sağ olun, elimden geleni yapıyorum!"]),
+    (re.compile(r"^(?:" + _ME + r")?(iyiyim|iyi|fena değil|idare eder|harikayım|gayet iyi)(?: dinyo)?$"),
+     ["Sevindim! Size nasıl yardımcı olabilirim?", "Ne güzel! Bir sorun varsa buradayım."]),
+    (re.compile(r"\b(kötüyüm|yorgunum|moralim bozuk|canım sıkkın|bunaldım|sıkıldım|çok yoruldum)\b"),
+     ["Geçmiş olsun! İsterseniz birlikte bakalım, sorunu yazın.", "Üzüldüm. Elimden geliyorsa sorununuzu çözmeye çalışırım."]),
+    (re.compile(r"^(ha){2,}h?$|^(he){2,}h?$|\bkomik\b"), ["😄 Başka bir konuda yardımcı olabilir miyim?"]),
+]
+
+
+def _extra(t: str) -> str | None:
+    for pattern, replies in _EXTRAS:
+        if pattern.search(t):
+            return random.choice(replies)
+    return None
 
 
 def display_name(username: str) -> str:
@@ -49,7 +84,7 @@ def smalltalk(text: str) -> str | None:
         return HOW_ARE_YOU
     if _GREET.match(t):
         return GREETING
-    return None
+    return _extra(t)
 
 
 # ---------------- Öğrenme komutu ("bunu kaydet") ----------------
